@@ -1,12 +1,56 @@
+  name: Compila APK Bibirub
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Scarica progetto
+        uses: actions/checkout@v4
+
+      - name: Estrai sorgenti Android
+        run: |
+          unzip -q "Bibirub_Android (11).zip" -d android-project
+          test -f android-project/settings.gradle
+
+      - name: Installa Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Prepara Android SDK
         run: |
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          if [ ! -x "$SDKMANAGER" ]; then
-            SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)"
-          fi
-          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+          echo "Cerco Android SDK..."
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)"
+          if [ -z "$SDKMANAGER" ]; then
             echo "Errore: sdkmanager non trovato"
             exit 1
           fi
           echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
-          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Prepara Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Compila APK
+        run: gradle -p android-project --no-daemon assembleDebug
+
+      - name: Consegna APK installabile
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK_Il_Mio_Gin_Vino_Bibirub
+          path: android-project/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
