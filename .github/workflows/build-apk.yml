@@ -1,4 +1,4 @@
-  name: Compila APK Bibirub
+name: Compila APK Bibirub
 
 on:
   workflow_dispatch:
