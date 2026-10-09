@@ -45,8 +45,10 @@ jobs:
         with:
           gradle-version: '8.7'
 
-    {fix}
-
+    - name: Compila APK
+        run: |
+          echo "android.useAndroidX=true" >> android-project/gradle.properties
+          gradle -p android-project --no-daemon assembleDebug
       - name: Consegna APK installabile
         uses: actions/upload-artifact@v4
         with:
