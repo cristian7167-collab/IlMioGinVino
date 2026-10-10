@@ -1,0 +1,16 @@
+IL MIO GIN E IL MIO VINO - OCR MIGLIORATO (GRATUITO)
+
+1. Non eliminare le collezioni esistenti: prima esportare un backup da ogni app.
+2. Apri il repository GitHub IlMioGinVino > Add file > Upload files.
+3. Trascina la cartella docs intera, mantenendo il percorso docs/...
+4. Salva con Commit changes e attendi pages-build-deployment verde.
+5. Ricarica il sito GitHub Pages. Su iPhone PWA una versione vecchia potrebbe richiedere chiudere e riaprire l'app.
+6. Apri una bottiglia nuova, fotografa l'etichetta: parte una lettura automatica su 3 aree.
+7. Se poco testo e' leggibile, premi "Ritaglia etichetta" e trascina il rettangolo sulle scritte.
+8. Premere "Usa ritaglio e rileggi"; verificare prima di salvare.
+
+Nessuna chiave API e nessun abbonamento AI. Tesseract.js viene scaricato la prima volta via internet;
+le immagini non sono inviate a un motore di riconoscimento remoto.
+Il riconoscimento OCR non garantisce produttore e provenienza se non sono indicati sull'etichetta.
+Le foto molto sfocate o a risoluzione troppo bassa restano difficili da leggere.
+I file originali e i backup sono conservati sul dispositivo.
