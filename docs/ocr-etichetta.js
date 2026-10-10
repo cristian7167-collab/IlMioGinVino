@@ -1,6 +1,6 @@
 /* Il Mio Gin e Il Mio Vino: OCR gratuito eseguito nel browser.
    Le foto rimangono sul dispositivo: scarichiamo solo il motore OCR e i dizionari.
-   Versione 2026-10-10 / Nessuna API e nessun riconoscimento cloud. */
+   Versione 2026-10-10 migliorata - patch OCR 6 / Nessuna API e nessun riconoscimento cloud. */
 (function (root) {
   'use strict';
   var type = document.body.dataset.collection === 'vino' ? 'vino' : 'gin';
@@ -14,6 +14,9 @@
   var internalWrite = false;
   var editingExisting = false;
   var currentLabel = '';
+  var cropRegion = null;
+  var autoFilled = {};
+  var cropURL = null;
 
   function fold(s) {
     return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -70,6 +73,7 @@
     ['Bordeaux','Francia',['bordeaux','medoc','m\u00e9doc','saint emilion','pomerol']],
     ['Borgogna','Francia',['bourgogne','burgundy','borgogna','chablis','cote de nuits','c\u00f4te de nuits']],
     ['Champagne','Francia',['champagne','reims','epernay']],
+    ['Nuova Aquitania','Francia',['nouvelle aquitaine','nuova aquitania','charente','charente maritime']],
     ['Loira','Francia',['loire','sancerre','pouilly fume','pouilly fum\u00e9']],
     ['Rodano','Francia',['rhone','rh\u00f4ne','chateauneuf du pape','ch\u00e2teauneuf du pape']],
     ['Provenza','Francia',['provence','provenza']],
@@ -81,7 +85,7 @@
     ['Napa Valley','Stati Uniti',['napa valley','napa']],
     ['Mendoza','Argentina',['mendoza']]
   ];
-  var ignorable = /^(gin|dry gin|london dry gin|distilled gin|vino|wine|red wine|white wine|rose|ros\u00e9|alc|vol|alcohol|prodotto|produced|imbottigliato|bottled|distilled|750\s?ml|70\s?cl|100\s?cl|doc|docg|igt|organic|bio|superiore|riserva|original|premium)$/i;
+  var ignorable = /^(gin|gin (de|from|in) (france|italia|italy|spain|espana|england)|dry gin|london dry gin|distilled gin|vino|wine|red wine|white wine|rose|ros\u00e9|alc|vol|alcohol|prodotto|produced|imbottigliato|bottled|distilled|750\s?ml|70\s?cl|100\s?cl|doc|docg|igt|organic|bio|superiore|riserva|original|premium)$/i;
   var textBlacklist = /\b(alc\.?|%\s?vol|\d+\s?ml|\d+\s?cl|\d+\s?litri|ingredients|ingredienti|lotto|contiene|contains|barcode|consumo|servire|alc[o\u00f2]l|www\.|\.com|codice|imported by|distributed by|best before)\b/i;
   function tidy(s) {
     return String(s || '').replace(/^[\s:;,\-]+|[\s:;,\-]+$/g, '')
@@ -158,9 +162,12 @@
   function setField(id,value,allowDefault) {
     var field=el(id);
     if (!field || !value) return false;
-    if (field.value.trim() && !(allowDefault && field.value.trim() === 'Italia' && !touchedCountry && !editingExisting)) return false;
+    var existing = field.value.trim();
+    var canUpdateOCR = Object.prototype.hasOwnProperty.call(autoFilled,id) && existing === autoFilled[id];
+    if (existing && !canUpdateOCR && !(allowDefault && existing === 'Italia' && !touchedCountry && !editingExisting)) return false;
     internalWrite=true;
     field.value=value.slice(0,Number(field.maxLength)||100);
+    autoFilled[id]=field.value;
     field.dispatchEvent(new Event('input',{bubbles:true}));
     internalWrite=false;
     return true;
@@ -208,80 +215,257 @@
     }).catch(function(err){workerPromise=null;throw err;});
     return workerPromise;
   }
-  function prepareImage(input) {
+  // Use the ORIGINAL photo for recognition (not the thumbnail/compressed archive copy).
+  // A source canvas is scaled down only to avoid excessive mobile memory use.
+  function decodeImage(input) {
     return new Promise(function(resolve,reject) {
       var url = typeof input === 'string' ? input : URL.createObjectURL(input);
-      var objURL=typeof input !== 'string';
-      var img=new Image();
+      var objectURL = typeof input !== 'string';
+      var img = new Image();
       img.onload=function() {
-        if(objURL) URL.revokeObjectURL(url);
-        var width=img.naturalWidth,height=img.naturalHeight;
-        if(!width || !height){reject(new Error('Foto non leggibile'));return;}
-        var factor=Math.min(1,1800/Math.max(width,height));
-        var canvas=document.createElement('canvas');
-        canvas.width=Math.max(1,Math.round(width*factor));
-        canvas.height=Math.max(1,Math.round(height*factor));
-        var ctx=canvas.getContext('2d');
-        ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.drawImage(img,0,0,canvas.width,canvas.height);
-        resolve(canvas.toDataURL('image/jpeg',0.88));
+        if(objectURL) URL.revokeObjectURL(url);
+        if(!img.naturalWidth || !img.naturalHeight) { reject(new Error('Foto non leggibile')); return; }
+        resolve(img);
       };
-      img.onerror=function(){if(objURL)URL.revokeObjectURL(url);reject(new Error('Immagine non supportata dal browser'));};
+      img.onerror=function(){ if(objectURL)URL.revokeObjectURL(url);reject(new Error('Immagine non supportata')); };
       img.src=url;
     });
+  }
+  function sourceCanvas(img) {
+    var factor=Math.min(1,2100/Math.max(img.naturalWidth,img.naturalHeight));
+    var c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(img.naturalWidth*factor));
+    c.height=Math.max(1,Math.round(img.naturalHeight*factor));
+    var g=c.getContext('2d',{willReadFrequently:true});
+    g.fillStyle='#ffffff';g.fillRect(0,0,c.width,c.height);
+    g.drawImage(img,0,0,c.width,c.height);
+    return c;
+  }
+  function normalizeRect(r) {
+    var x=Math.max(0,Math.min(.95,Number(r.x)||0));
+    var y=Math.max(0,Math.min(.95,Number(r.y)||0));
+    var w=Math.max(.05,Math.min(1-x,Number(r.w)||1));
+    var h=Math.max(.05,Math.min(1-y,Number(r.h)||1));
+    return {x:x,y:y,w:w,h:h};
+  }
+  // Enlarge the label, stretch contrast using percentile intensity boundaries,
+  // then optionally use monochrome. All processing remains inside this browser.
+  function renderVariant(src,region,mode) {
+    region=normalizeRect(region);
+    var sw=Math.max(1,Math.round(src.width*region.w));
+    var sh=Math.max(1,Math.round(src.height*region.h));
+    var sx=Math.max(0,Math.min(src.width-sw,Math.round(region.x*src.width)));
+    var sy=Math.max(0,Math.min(src.height-sh,Math.round(region.y*src.height)));
+    var multiplier=Math.min(2.7,Math.max(1,1400/Math.max(sw,sh)));
+    var sizeLimit=1900;
+    var c=document.createElement('canvas');
+    c.width=Math.min(sizeLimit,Math.max(1,Math.round(sw*multiplier)));
+    c.height=Math.min(sizeLimit,Math.max(1,Math.round(sh*multiplier)));
+    var g=c.getContext('2d',{willReadFrequently:true});
+    g.imageSmoothingEnabled=true;
+    g.imageSmoothingQuality='high';
+    g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);
+    g.drawImage(src,sx,sy,sw,sh,0,0,c.width,c.height);
+    if(mode==='original')return c;
+    var image=g.getImageData(0,0,c.width,c.height);
+    var a=image.data,hist=new Uint32Array(256),gray=new Uint8Array(c.width*c.height);
+    var total=gray.length;
+    for(var i=0,p=0;i<a.length;i+=4,p++) {
+      var lum=Math.max(0,Math.min(255,Math.round(.299*a[i]+.587*a[i+1]+.114*a[i+2])));
+      gray[p]=lum;hist[lum]++;
+    }
+    var targetLow=total*.045,targetHigh=total*.955;
+    var cumulative=0,lo=0,hi=255;
+    for(var j=0;j<256;j++){cumulative+=hist[j];if(cumulative>=targetLow){lo=j;break;}}
+    cumulative=0;
+    for(var k=0;k<256;k++){cumulative+=hist[k];if(cumulative>=targetHigh){hi=k;break;}}
+    if(hi-lo<35){lo=Math.max(0,lo-20);hi=Math.min(255,hi+20);}
+    for(var n=0;n<total;n++) {
+      var stretched=Math.round(255*(gray[n]-lo)/Math.max(1,hi-lo));
+      stretched=Math.max(0,Math.min(255,stretched));
+      if(mode==='binary')stretched=stretched<144?15:250;
+      var pos=n*4;
+      a[pos]=a[pos+1]=a[pos+2]=stretched;
+    }
+    g.putImageData(image,0,0);
+    return c;
+  }
+  function scoreOCR(output,parsed) {
+    var conf=Number(output && output.data && output.data.confidence)||0;
+    var raw=String(output && output.data && output.data.text || '');
+    var meaningful=raw.replace(/[^A-Za-zÀ-ÿ]/g,'').length;
+    var score=Math.min(40,Math.max(0,conf*.38));
+    if(parsed.name)score+=27;
+    if(parsed.producer)score+=19;
+    if(parsed.region)score+=15;
+    if(parsed.country)score+=10;
+    if(parsed.vintage)score+=6;
+    if(parsed.grape)score+=6;
+    if(meaningful<7)score-=30;
+    // Reject OCR detritus, even when the engine reports misleading confidence.
+    if(parsed.name && /^(?:[A-Z]{2,4}\s*[#0-9]+|[A-Z]{1,3})$/i.test(parsed.name))score-=25;
+    return score;
+  }
+  function usableResult(entry) {
+    if(!entry)return false;
+    var fields=entry.parsed;
+    return entry.score>=43 && Boolean(fields.name || fields.country || fields.region || fields.producer || fields.vintage);
   }
   async function process(photo,version) {
     busy=true;
     if(el('ocrTry'))el('ocrTry').disabled=true;
+    if(el('ocrCrop'))el('ocrCrop').disabled=true;
     showRaw('');
-    status('Preparo la foto per la lettura...');
+    status('Preparo ingrandimento e contrasto dell\'etichetta...');
     try {
-      var image=await prepareImage(photo);
+      var img=await decodeImage(photo);
+      var src=sourceCanvas(img);
       var worker=await getWorker();
-      var output=await worker.recognize(image);
+      var attempts;
+      if(cropRegion) {
+        attempts=[
+          {title:'ritaglio scelto',area:cropRegion,mode:'contrast',psm:'6'},
+          {title:'ritaglio nitido',area:cropRegion,mode:'original',psm:'11'},
+          {title:'ritaglio bianco/nero',area:cropRegion,mode:'binary',psm:'6'}
+        ];
+      } else {
+        attempts=[
+          {title:'centro etichetta',area:{x:.17,y:.12,w:.66,h:.76},mode:'contrast',psm:'11'},
+          {title:'dettaglio centrale',area:{x:.29,y:.16,w:.42,h:.67},mode:'original',psm:'6'},
+          {title:'foto completa',area:{x:0,y:0,w:1,h:1},mode:'contrast',psm:'11'}
+        ];
+      }
+      var best=null;
+      for(var j=0;j<attempts.length;j++) {
+        if(version!==revision || !el('editorOverlay').classList.contains('open'))return;
+        var attempt=attempts[j];
+        status('Analisi '+(j+1)+'/'+attempts.length+': '+attempt.title+'...');
+        if(worker.setParameters)await worker.setParameters({tessedit_pageseg_mode:attempt.psm});
+        var c=renderVariant(src,attempt.area,attempt.mode);
+        var result=await worker.recognize(c);
+        c.width=1;c.height=1;
+        var raw=String(result && result.data && result.data.text || '').trim();
+        var parsed=parse(raw,type);
+        var entry={raw:raw,parsed:parsed,score:scoreOCR(result,parsed),attempt:attempt.title};
+        if(!best || entry.score>best.score)best=entry;
+        // Quick exit when the label has enough identifying fields.
+        if(entry.score>=92 && parsed.name && (parsed.country || parsed.region || parsed.producer))break;
+      }
       if(version!==revision || !el('editorOverlay').classList.contains('open'))return;
-      var raw=(output && output.data && output.data.text || '').trim();
-      currentLabel=raw;
-      showRaw(raw);
-      if (!raw){status('Testo non leggibile. Fotografa da vicino la parte frontale dell\u0027etichetta.');return;}
-      apply(parse(raw,type));
+      currentLabel=(best && best.raw)||'';
+      showRaw(currentLabel);
+      if(!best || !usableResult(best)) {
+        status('Lettura ancora incerta. Tocca «Ritaglia etichetta», seleziona solo la parte con le scritte e riprova. Nessun dato inserito automaticamente.');
+        return;
+      }
+      apply(best.parsed);
+      if(el('ocrStatus'))el('ocrStatus').textContent+=' (Lettura migliore: '+best.attempt+'.)';
     } catch(err) {
-      if(version===revision)status('Lettura non riuscita: '+(err && err.message ? err.message : 'errore sconosciuto')+'. Puoi compilare la scheda manualmente.',true);
+      if(version===revision)status('Lettura non riuscita: '+(err&&err.message?err.message:'errore sconosciuto')+'. Compila manualmente o riprova.',true);
     } finally {
       busy=false;
       if(el('ocrTry'))el('ocrTry').disabled=false;
+      if(el('ocrCrop'))el('ocrCrop').disabled=false;
       if(version!==revision && lastPhoto && el('editorOverlay').classList.contains('open'))start();
     }
   }
   function start() {
     if(busy)return;
     var photo=lastPhoto || (el('photoPreview') && !el('photoPreview').classList.contains('hide') && el('photoPreview').src);
-    if(!photo){status('Prima fotografa la bottiglia oppure seleziona una foto dalla galleria.');return;}
+    if(!photo){status('Prima fotografa la bottiglia oppure seleziona una foto.');return;}
     process(photo,revision);
+  }
+  function makeCropModal() {
+    if(el('ocrCropModal'))return;
+    var overlay=document.createElement('div');
+    overlay.id='ocrCropModal';
+    overlay.className='ocr-crop-overlay';
+    overlay.setAttribute('role','dialog');
+    overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-label','Ritaglia etichetta');
+    overlay.hidden=true;
+    overlay.innerHTML='<div class="ocr-crop-sheet"><h3>Seleziona l\'etichetta</h3>'+ 
+      '<p>Trascina il dito o il mouse per delimitare solo le scritte leggibili. Non modifichiamo la foto salvata.</p>'+ 
+      '<div class="ocr-crop-area"><div id="ocrCropStage" class="ocr-crop-stage">'+
+      '<img id="ocrCropImage" alt="Fotografia da ritagliare"><div id="ocrCropSelection" class="ocr-crop-selection"></div>'+ 
+      '</div></div><div class="ocr-crop-actions"><button type="button" id="ocrCropCancel">Annulla</button>'+ 
+      '<button type="button" id="ocrCropApply">Usa ritaglio e rileggi</button></div></div>';
+    document.body.appendChild(overlay);
+    var stage=el('ocrCropStage');
+    var startPt=null;
+    function pos(e){var r=stage.getBoundingClientRect();return {
+      x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),
+      y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))
+    };}
+    function updateSelection(){var div=el('ocrCropSelection');var r=cropRegion || {x:.20,y:.16,w:.60,h:.70};
+      div.style.left=(r.x*100)+'%';div.style.top=(r.y*100)+'%';
+      div.style.width=(r.w*100)+'%';div.style.height=(r.h*100)+'%';}
+    stage.addEventListener('pointerdown',function(e){
+      e.preventDefault();startPt=pos(e);stage.setPointerCapture(e.pointerId);
+      cropRegion={x:startPt.x,y:startPt.y,w:.01,h:.01};updateSelection();
+    });
+    stage.addEventListener('pointermove',function(e){
+      if(!startPt)return;var p=pos(e);
+      cropRegion={x:Math.min(startPt.x,p.x),y:Math.min(startPt.y,p.y),
+        w:Math.abs(p.x-startPt.x),h:Math.abs(p.y-startPt.y)};updateSelection();
+    });
+    function endDrag(){
+      if(!startPt)return;startPt=null;
+      if(!cropRegion || cropRegion.w<.08 || cropRegion.h<.07)cropRegion={x:.20,y:.16,w:.60,h:.70};
+      updateSelection();
+    }
+    stage.addEventListener('pointerup',endDrag);
+    stage.addEventListener('pointercancel',endDrag);
+    function close(){overlay.hidden=true;if(cropURL){URL.revokeObjectURL(cropURL);cropURL=null;}}
+    el('ocrCropCancel').addEventListener('click',close);
+    overlay.addEventListener('click',function(e){if(e.target===overlay)close();});
+    el('ocrCropApply').addEventListener('click',function(){
+      endDrag();close();revision++;if(!busy)start();else status('Completo la lettura corrente, poi applico il ritaglio...');
+    });
+    overlay.updateSelection=updateSelection;
+    overlay.open=function(photo){
+      if(cropURL){URL.revokeObjectURL(cropURL);cropURL=null;}
+      var pic=el('ocrCropImage');
+      if(typeof photo==='string')pic.src=photo;
+      else {cropURL=URL.createObjectURL(photo);pic.src=cropURL;}
+      cropRegion=cropRegion || {x:.20,y:.16,w:.60,h:.70};
+      overlay.hidden=false;updateSelection();
+    };
+  }
+  function openCrop() {
+    var photo=lastPhoto || (el('photoPreview') && el('photoPreview').src);
+    if(!photo){status('Prima scegli una fotografia.');return;}
+    makeCropModal();el('ocrCropModal').open(photo);
   }
   function onPhotoReady(file) {
     if(!file)return;
     revision++;
     lastPhoto=file;
-    status('Foto pronta: avvio il riconoscimento gratuito...');
+    cropRegion=null;
+    autoFilled={};
+    status('Foto pronta: ingrandisco e leggo automaticamente l\'etichetta...');
     start();
   }
   function onEditorOpen(isEditing) {
     revision++;
     lastPhoto=null;
+    cropRegion=null;
+    autoFilled={};
     touchedCountry=false;
     editingExisting=Boolean(isEditing);
     currentLabel='';
     showRaw('');
-    status('Scatta una foto dell\u0027etichetta: il riconoscimento parte automaticamente.');
+    status('Scatta una foto dell\'etichetta: il riconoscimento parte automaticamente.');
   }
   function setup() {
     var btn=el('ocrTry');
     if(btn)btn.addEventListener('click',function(e){e.preventDefault();start();});
+    var crop=el('ocrCrop');
+    if(crop)crop.addEventListener('click',function(e){e.preventDefault();openCrop();});
     var country=el('ginCountry');
     if(country)country.addEventListener('input',function(){if(!internalWrite)touchedCountry=true;});
   }
-  root.GinVinoOCR={parse:parse,onPhotoReady:onPhotoReady,onEditorOpen:onEditorOpen,recognize:start};
+  root.GinVinoOCR={parse:parse,onPhotoReady:onPhotoReady,onEditorOpen:onEditorOpen,recognize:start,renderVariant:renderVariant,scoreOCR:scoreOCR};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);
   else setup();
 })(window);

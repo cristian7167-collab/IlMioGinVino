@@ -25,6 +25,21 @@
 .nav{grid-template-columns:repeat(5,1fr)}
 .nav .otherapp{min-height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;text-decoration:none;font-size:22px;color:var(--gold2)}
 .nav .otherapp small{font-size:11px;color:var(--muted)}
+
+.ocr-crop-btn{margin-top:8px;width:100%;background:transparent;border:1px solid #ab8b64;border-radius:10px;padding:11px 10px;font:inherit;font-weight:650;color:inherit;cursor:pointer;}
+.ocr-crop-btn:disabled{opacity:.55;cursor:wait;}
+.ocr-crop-overlay[hidden]{display:none!important;}
+.ocr-crop-overlay{position:fixed;z-index:99999;inset:0;background:rgba(20,15,12,.82);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;}
+.ocr-crop-sheet{max-width:650px;width:100%;max-height:96vh;overflow-y:auto;background:#fffaf1;color:#342920;border-radius:16px;padding:16px;box-sizing:border-box;text-align:center;}
+.ocr-crop-sheet h3{font-size:20px;margin:0 0 8px;}
+.ocr-crop-sheet p{font-size:14px;line-height:1.4;margin:0 0 12px;}
+.ocr-crop-area{display:flex;justify-content:center;align-items:center;margin-bottom:14px;background:#eee2d3;min-height:130px;}
+.ocr-crop-stage{position:relative;display:inline-block;max-width:100%;touch-action:none;cursor:crosshair;line-height:0;}
+.ocr-crop-stage img{display:block;max-width:100%;max-height:54vh;width:auto;height:auto;pointer-events:none;user-select:none;}
+.ocr-crop-selection{position:absolute;box-sizing:border-box;border:3px solid #f2cf51;box-shadow:0 0 0 9999px rgba(0,0,0,.25),inset 0 0 0 1px #473516;pointer-events:none;}
+.ocr-crop-actions{display:flex;gap:10px;justify-content:center;}
+.ocr-crop-actions button{padding:12px 9px;font:inherit;border-radius:10px;border:1px solid #a88b69;flex:1;cursor:pointer;}
+.ocr-crop-actions button:last-child{background:#76513c;color:#fff;font-weight:bold;}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 
@@ -64,6 +79,7 @@
   <h3>&#128269; Riconoscimento gratuito dell'etichetta</h3>
   <p>Dopo aver scattato o scelto una foto, provo a leggere il testo e compilare nome, produttore, regione e nazione. Per risultati migliori inquadra da vicino l'etichetta frontale.</p>
   <button id="ocrTry" class="ocr-btn" type="button">&#128247; Leggi / rileggi l'etichetta</button>
+  <button id="ocrCrop" class="ocr-crop-btn" type="button">&#9986; Ritaglia etichetta per migliorarne la lettura</button>
   <p class="ocr-state" id="ocrStatus" role="status" aria-live="polite">Carica una foto per iniziare.</p>
   <details id="ocrRawDetails" hidden><summary>Mostra il testo letto dalla foto</summary><pre id="ocrRaw"></pre></details>
   <p style="font-size:12px;margin-bottom:0;">Le foto sono analizzate sul dispositivo, senza inviarle a un servizio di riconoscimento. Per il primo utilizzo occorre Internet per scaricare il motore OCR e i dizionari. I risultati sono indicativi: verifica sempre i campi prima del salvataggio.</p>
@@ -110,6 +126,6 @@ function wire(){document.querySelectorAll('.nav button').forEach(b=>b.addEventLi
 (async()=>{wire();await initDB();render();if(location.protocol==='https:'&&'serviceWorker'in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}if(state.store==='memoria temporanea')toast('Attenzione: il salvataggio permanente non è disponibile!')})();
 })();
 </script>
-<script src="./ocr-etichetta.js"></script>
+<script src="./ocr-etichetta.js?v=20261010-6"></script>
 </body>
 </html>

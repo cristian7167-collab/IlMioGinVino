@@ -1,4 +1,4 @@
-const CACHE = 'il-mio-gin-vino-shell-20261010-ocr-v3';
+const CACHE = 'il-mio-gin-vino-shell-20261010-ocr-v6';
 const APP_FILES = [
   './', './index.html', './Il_Mio_Gin.html', './Il_Mio_Vino.html',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
@@ -26,6 +26,10 @@ self.addEventListener('fetch', event => {
       }
       return response;
     }).catch(async () => (await caches.match(request)) || (await caches.match('./index.html'))));
+    return;
+  }
+  if (url.pathname.endsWith('/ocr-etichetta.js')) {
+    event.respondWith(fetch(request).catch(() => caches.match('./ocr-etichetta.js')));
     return;
   }
   event.respondWith(caches.match(request).then(hit => hit || fetch(request)));
