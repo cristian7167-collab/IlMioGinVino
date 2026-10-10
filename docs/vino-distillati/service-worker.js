@@ -1,4 +1,4 @@
-const NAME='bibirub-vino-distillati-pwa-v1.0.0';
+const NAME='bibirub-vino-distillati-pwa-v1.2.0';
 const PREFIX='bibirub-vino-distillati-pwa-';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install', event=>{

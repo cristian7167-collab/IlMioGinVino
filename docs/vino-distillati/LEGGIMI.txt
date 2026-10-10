@@ -1,4 +1,4 @@
-BIBIRUB - VINO & DISTILLATI | Versione unificata 1.0
+BIBIRUB - VINO & DISTILLATI | Versione unificata 1.1
 ====================================================
 
 COSA CONTIENE
@@ -29,3 +29,16 @@ IMPORTANTE SULL'ARCHIVIO
 - OCR Tesseract locale richiede Internet per scaricare il motore e i dizionari al primo avvio.
 
 Questa consegna NON pubblica nulla su GitHub: è un pacchetto pronto al caricamento.
+
+NOVITA v1.1: Entrambi i loghi sono immagini decorative accanto a Ogni bottiglia, una storia e a La collezione. Le categorie si scelgono sotto. Carica i file soltanto in docs/vino-distillati per GitHub Pages impostato su main/docs.
+
+VERSIONE 1.2 - LOGHI ORIGINALI
+-------------------------------
+- Nel layout Home e La collezione, vengono usate le immagini ORIGINALI gia' presenti in docs:
+  docs/logo-vino.png e docs/logo-gin.png.
+- Non e' stato usato alcun ritaglio di screenshot per i due loghi laterali.
+- La versione index.html in questo ZIP deve trovarsi ESATTAMENTE in docs/vino-distillati/.
+- Non sostituire, rinominare o eliminare i due logo originali in docs.
+- Apri il nuovo URL via HTTPS per verificare la corretta visualizzazione dei loghi.
+- Se usi l'HTML standalone locale, i due loghi sono caricati dal sito GitHub Pages e richiedono connessione.
+- Le foto e il database rimangono separati dalle app gia' installate.
