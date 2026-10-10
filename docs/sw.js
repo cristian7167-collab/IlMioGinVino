@@ -1,8 +1,8 @@
-const CACHE = 'il-mio-gin-vino-shell-20261010-v1';
+const CACHE = 'il-mio-gin-vino-shell-20261010-ocr-v3';
 const APP_FILES = [
   './', './index.html', './Il_Mio_Gin.html', './Il_Mio_Vino.html',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',
-  './logo-gin.png', './logo-vino.png'
+  './logo-gin.png', './logo-vino.png', './apple-touch-icon.png', './ocr-etichetta.js'
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_FILES)).then(() => self.skipWaiting()));
