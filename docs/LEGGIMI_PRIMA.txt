@@ -1,0 +1,23 @@
+BIBIRUB DISTILLATI - VERSIONE BLU, MASCOTTE ABBRACCIATE, CORNICE ORO
+
+IN QUESTA CARTELLA CI SONO 6 FILE DA CARICARE IN GitHub > IlMioGinVino > docs:
+- Il_Mio_Superalcolico_Android.html (SOSTITUISCE quello omonimo)
+- spirits-manifest.webmanifest (SOSTITUISCE quello omonimo)
+- spirits-sw.js (SOSTITUISCE quello omonimo)
+- spirits-icon-192.png (SOSTITUISCE quello omonimo)
+- spirits-icon-512.png (SOSTITUISCE quello omonimo)
+- spirits-brand-logo.webp (NUOVO)
+
+PASSAGGI:
+1. Su Android, prima delle modifiche, vai su Backup nell'app e scarica un backup JSON: e' una precauzione per i dati locali.
+2. Scarica questo zip e estrai i file.
+3. Apri la cartella docs del repository: https://github.com/cristian7167-collab/IlMioGinVino/tree/main/docs
+4. Usa Add file > Upload files per caricare i sei file. Conferma la sostituzione dei file esistenti e poi Commit changes.
+5. Aspetta il completamento della pubblicazione di GitHub Pages (Actions).
+6. Apri in Chrome Android https://cristian7167-collab.github.io/IlMioGinVino/Il_Mio_Superalcolico_Android.html
+7. Se la pagina resta vecchia, ricarica. Se l'app e' gia installata, chiudila e riaprila, sempre dopo aver fatto il backup.
+8. Per installare: menu Chrome > Installa app (oppure Aggiungi a schermata Home). Non aprire nel browser interno ChatGPT.
+
+NOTE: Questa versione mantiene IndexedDB 'bibirub-distillati-android' e non importa, cancella, migra o modifica automaticamente le bottiglie locali. Le collezioni non sono ancora sincronizzate tramite Supabase.
+ATTENZIONE: l'installazione puo' essere una PWA o una scorciatoia secondo Chrome e versione Android. Le icone 192 e 512 includono uno spazio sicuro per il ritaglio Android.
+Non caricare lo ZIP intero: carica i sei file al suo interno. Non sostituire Il_Mio_Gin.html, Il_Mio_Vino.html, index.html o sw.js della vecchia app.

@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111b1a">
+  <meta name="theme-color" content="#0b1c31">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Bibirub — la tua collezione personale di distillati e superalcolici, su Android.">
   <link rel="manifest" href="./spirits-manifest.webmanifest">
-  <link rel="icon" href="./spirits-icon-192.png" type="image/png">
+  <link rel="icon" href="./spirits-icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="./spirits-icon-192.png">
   <title>Bibirub • I miei distillati</title>
   <style>
     :root { color-scheme:dark; --bg:#101916; --panel:#1a2520; --panel2:#22322a; --line:#324039; --ink:#f7f2e7; --muted:#a8b5a8; --gold:#efcb85; --gold2:#d9a95b; --green:#b4d0a1; --danger:#fa9a92; --radius:19px; }
@@ -50,17 +51,69 @@
     @media(min-width:650px){.hero h1{max-width:500px}.catalog{grid-template-columns:repeat(3,1fr)}.bottle-thumb{height:215px}.shell{padding-left:26px;padding-right:26px}.hero{padding:37px;min-height:245px}.photo-preview{height:290px}.detail-cover{height:420px}}
     @media(max-width:360px){.stats{gap:6px}.stat{padding:12px 8px}.stat strong{font-size:25px}.filter-bar{grid-template-columns:1fr 108px}.shell{padding-left:13px;padding-right:13px}.brand b{font-size:18px}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+  
+    /* Bibirub Distillati 2.0: tema blu notte e rame, identita' distinta da Gin/Vino */
+    :root { --bg:#091627; --panel:#12243b; --panel2:#1b3450; --line:#344e69; --ink:#f8f4e9; --muted:#b8c9d8; --gold:#f1cf91; --gold2:#d3a258; --green:#a3cde5; --danger:#ff9c92; }
+    body { background: radial-gradient(ellipse 120% 46% at 50% -5%,#153c60 0%,#0a213b 49%,#091627 100%) fixed; }
+    .logo {width:57px;height:57px;flex:0 0 57px;overflow:hidden;border-radius:17px;background:#10304d;border:1px solid #b89963;box-shadow:0 4px 17px #0006;}
+    .logo img{width:100%;height:100%;object-fit:contain;display:block;}
+    .brand b{font-size:19px;}
+    .head-action{background:#18334c;border-color:#57738b;}
+    .hero{display:flex;flex-direction:column-reverse;align-items:center;gap:6px;min-height:unset;margin:6px 0 19px;padding:18px 20px 24px;
+        background:radial-gradient(circle at 60% 10%,#29547a 0%,transparent 57%),linear-gradient(140deg,#172f4c,#0d2039 85%);
+        border:1px solid #5d7791;box-shadow:inset 0 1px #ffffff16,0 12px 34px #0003;}
+    .hero::after{display:none;}
+    .hero-copy{align-self:stretch;text-align:center;}
+    .hero .lede{margin:0 auto;max-width:45ch;color:#cfdfec;}
+    .hero h1{max-width:none;color:#fffbf2;font-size:clamp(29px,8vw,39px);}
+    .hero-emblem{width:min(62%,240px);height:auto;max-height:238px;object-fit:contain;filter:drop-shadow(0 8px 20px #0007);flex-shrink:0;}
+    .btn-primary{color:#15253b;background:linear-gradient(145deg,#ffe5ad,#dbab62);box-shadow:0 2px 13px #10121a3f;}
+    .btn-plain{background:#203953;border-color:#44627e;}
+    .btn-outline{border-color:#b99866;}
+    .btn-danger{background:#4c2938;border-color:#815463;}
+    .stats .stat{background:#152a42;border-color:#38536c;}
+    .type-tile{background:linear-gradient(155deg,#244464,#13263e);border-color:#44627d;}
+    .type-tile span{color:#bfd0df;}
+    .chip{background:#182f47;border-color:#3b5b77;color:#dae6ee;}
+    .chip.active{color:#15253b;}
+    .input,.select,.textarea{background:#10243a;border-color:#486582;color:#f8f4e9;}
+    .input::placeholder,.textarea::placeholder{color:#a3b6c8;}
+    .bottle-thumb{background:linear-gradient(135deg,#23405c,#0b1b30);}
+    .pill{background:#102a48e3;border-color:#8a93a1;color:#ffdf9c;}
+    .placeholder{color:#a6c6df55;}
+    .empty{background:linear-gradient(145deg,#16304c,#102238);border-color:#4d7591;}
+    .field label{color:#dbe6ec;}
+    .photo-box{background:linear-gradient(135deg,#1d3954,#0c2037);border-color:#6a8197;}
+    .photo-preview{background:#10243c;}
+    .photo-preview .camera-placeholder{color:#b5d0e3;}
+    .detail-cover{background:radial-gradient(ellipse at 50% 25%,#285072,#10243a 70%);}
+    .notice{background:#203449;border-left-color:#f0c988;color:#e1e9f1;}
+    .bottom-nav{background:#0e2036f5;border-top-color:#42617e;}
+    .nav-item{color:#b3c9dc;}
+    .nav-item.active{background:#25435f;color:#f9dba2;}
+    .modal-content{background:#14263c;border-color:#607f9a;}
+    #toast{color:#12253d;background:#f8d9a3;}
+    @media(min-width:650px){
+      .hero{display:grid;grid-template-columns:1fr minmax(230px,.8fr);gap:15px;padding:26px 30px;min-height:270px;}
+      .hero-copy{grid-column:1;grid-row:1;text-align:left;}
+      .hero .lede{margin:0;}
+      .hero-emblem{grid-column:2;grid-row:1;width:100%;max-height:310px;justify-self:center;}
+      .hero h1{font-size:40px;}
+    }
+    @media(max-width:360px){.logo{width:49px;height:49px;flex-basis:49px;}.brand b{font-size:17px;}.brand small{font-size:8px;}}
+    @media(prefers-reduced-motion:reduce){.hero-emblem{filter:none;}}
+
   </style>
 </head>
 <body>
 <div class="shell">
   <header>
-    <div class="brand"><div class="logo" aria-hidden="true">B</div><div><small>LA MIA COLLEZIONE</small><b>Bibirub Distillati</b></div></div>
+    <div class="brand"><div class="logo" aria-hidden="true"><img src="./spirits-icon-192.png" alt=""></div><div><small>LA MIA COLLEZIONE</small><b>Bibirub Distillati</b></div></div>
     <button type="button" class="head-action" aria-label="Aggiungi bottiglia" onclick="go('new')">+</button>
   </header>
   <main>
     <section id="homePage" class="page">
-      <div class="hero"><div class="eyebrow">Il tuo angolo degustazione</div><h1>Ogni bottiglia,<br>una storia.</h1><p class="lede">Gin, Grappa, Cognac, Armagnac, Calvados e tutti i distillati che ami. Una collezione sempre con te.</p><button class="btn btn-primary" onclick="go('new')">＋ Aggiungi una bottiglia</button></div>
+      <div class="hero"><div class="hero-copy"><div class="eyebrow">Il tuo angolo degustazione</div><h1>Ogni bottiglia,<br>una storia.</h1><p class="lede">Gin, Grappa, Cognac, Armagnac, Calvados e tutti i distillati che ami. Una collezione sempre con te.</p><button class="btn btn-primary" onclick="go('new')">＋ Aggiungi una bottiglia</button></div><img class="hero-emblem" src="./spirits-brand-logo.webp" alt="Bibirub Distillati: la ragazza e la mascotte alambicco abbracciate, con cornice decorata blu e oro"></div>
       <div class="stats" id="homeStats"></div>
       <div class="section-title"><h2>Esplora per tipo</h2><button onclick="go('collection')">Vedi tutte →</button></div>
       <div class="tile-scroll" id="homeTypes"></div>
@@ -107,9 +160,9 @@
       <div class="eyebrow">Archivio personale</div><h1>Dati e sicurezza</h1><p class="lede">La tua collezione rimane sul dispositivo. Esporta una copia per non perdere foto e informazioni.</p>
       <div class="utility-card"><h3>Esporta la collezione</h3><p>Scarica un file JSON con tutte le schede e le fotografie salvate.</p><button class="btn btn-primary" id="exportBtn">↓ Scarica backup completo</button><small id="backupStats"></small></div>
       <div class="utility-card"><h3>Importa un backup</h3><p>Ripristina le bottiglie da un backup Bibirub, anche su un altro telefono.</p><button class="btn btn-outline" id="importBtn">↑ Seleziona backup JSON</button><input type="file" accept="application/json,.json" id="importInput" hidden><small>Le bottiglie già presenti non vengono cancellate; i record con lo stesso ID vengono aggiornati.</small></div>
-      <div class="utility-card"><h3>Usa come app Android</h3><p>Apri questa pagina in Chrome, premi ⋮ e scegli <b>Aggiungi a schermata Home</b> oppure <b>Installa app</b> quando disponibile.</p><div class="notice">Non serve un APK. Gli aggiornamenti della pagina web arrivano senza reinstallare l'app.</div></div>
+      <div class="utility-card"><h3>Installa Bibirub su Android</h3><p>Apri questa pagina con Chrome, poi scegli <b>Installa app</b> dal menu ⋮. Se appare solo "Aggiungi a schermata Home", aggiungi l'icona comunque.</p><button class="btn btn-primary" type="button" id="installAppBtn">⬇ Installa sul telefono</button><small id="installStatus">L'installazione richiede HTTPS e i file PWA pubblicati su GitHub.</small><div class="notice">La tua collezione resta nel browser di questo telefono. Non eliminare i dati del sito: esporta un backup prima di cambiare telefono.</div></div>
       <div class="notice"><b>Importante:</b> al momento non c'è sincronizzazione automatica tra Android e iPhone. I dati restano in questo browser; usa il backup per trasferirli. Non cancellare i dati del sito prima di esportarli.</div>
-      <p class="footnote">Bibirub • I miei distillati — versione Android web 1.0</p>
+      <p class="footnote">Bibirub • I miei distillati — versione Android web 2.0 blu</p>
     </section>
   </main>
 </div>
@@ -202,8 +255,21 @@
       let added=0;for(const rec of data.bottles){if(!rec||typeof rec.id!=='string'||!rec.id||typeof rec.name!=='string'||!rec.name.trim())continue;const clean={};for(const key of ['id','name','type','producer','country','region','abv','volume','age','year','price','rating','status','purchaseDate','notes','createdAt','updatedAt','photo'])if(rec[key]!==undefined)clean[key]=rec[key];if(clean.photo&&(!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(String(clean.photo))||String(clean.photo).length>10000000))clean.photo=null;await dbPut(clean);added++;}await reload();renderBackup();toast('Importate '+added+' bottiglie');}
     catch(err){alert('Importazione non riuscita: '+err.message);}});
   async function init(){id('spiritTypes').innerHTML=TYPES.map(t=>'<option value="'+safe(t)+'"></option>').join('');try{database=await dbConnect();await reload();showRoute();}catch(err){alert('Archivio non disponibile ('+err.message+'). Apri la pagina con Chrome tramite HTTPS/GitHub Pages, non in navigazione privata.');}
-    if('serviceWorker'in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./spirits-sw.js').catch(()=>{});}}
-  init();
+    if('serviceWorker'in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('./spirits-sw.js',{scope:'./Il_Mio_Superalcolico_Android.html'}).catch(err=>console.warn('Service worker Bibirub:',err));}}
+   let installEvent=null;
+   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;const status=id('installStatus');if(status)status.textContent='Bibirub e pronto per l\'installazione.';});
+   window.addEventListener('appinstalled',()=>{installEvent=null;toast('Bibirub installato sul telefono');});
+   id('installAppBtn').addEventListener('click',async()=>{
+     if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone){toast('Bibirub e gia aperto come app');return;}
+     if(installEvent){
+       const ev=installEvent;installEvent=null;
+       try{await ev.prompt();const choice=await ev.userChoice;if(choice&&choice.outcome==='accepted')toast('Installazione avviata');}
+       catch(err){toast('Apri il menu di Chrome e scegli Installa app');}
+       return;
+     }
+     alert('Apri questo indirizzo in Google Chrome (non nel browser di ChatGPT). Tocca i tre puntini ⋮, poi "Installa app" oppure "Aggiungi a schermata Home". Se manca, attendi qualche secondo e ricarica la pagina.');
+   });
+   init();
 })();
 </script>
 </body>

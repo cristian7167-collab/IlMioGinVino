@@ -1,0 +1,27 @@
+{
+  "id": "./Il_Mio_Superalcolico_Android.html",
+  "name": "Bibirub - I miei distillati",
+  "short_name": "Bibirub",
+  "description": "La tua collezione di distillati in blu notte, con Bibirub e il suo nuovo logo.",
+  "lang": "it",
+  "start_url": "./Il_Mio_Superalcolico_Android.html",
+  "scope": "./Il_Mio_Superalcolico_Android.html",
+  "display": "standalone",
+  "background_color": "#091627",
+  "theme_color": "#0b1c31",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./spirits-icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./spirits-icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
