@@ -1,26 +1,26 @@
 {
-  "name": "Il Mio Gin e Il Mio Vino",
-  "short_name": "Gin e Vino",
-  "description": "Le tue collezioni di gin e vino, con foto, GPS, archivio e backup.",
-  "id": "./index.html",
+  "id": "./",
+  "name": "Bibirub — Vino & Distillati",
+  "short_name": "Vino & Distillati",
+  "description": "La tua collezione di vino, gin, whisky, grappa e distillati",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#faf4eb",
-  "theme_color": "#69431f",
+  "background_color": "#fcf6ed",
+  "theme_color": "#fcf6ed",
   "lang": "it",
   "icons": [
     {
       "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }

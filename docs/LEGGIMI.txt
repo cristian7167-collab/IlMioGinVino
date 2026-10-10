@@ -1,0 +1,31 @@
+BIBIRUB - VINO & DISTILLATI | Versione unificata 1.0
+====================================================
+
+COSA CONTIENE
+- index.html: applicazione completa, grafica luminosa e doppio logo.
+- manifest.webmanifest: identità indipendente per Android.
+- service-worker.js: apertura offline della pagina e dei file locali dell'app.
+- icon-192.png e icon-512.png: icone dedicate.
+
+PUBBLICAZIONE SU GITHUB PAGES (SENZA SOVRASCRIVERE LE APP ESISTENTI)
+1. Apri il repository cristian7167-collab/IlMioGinVino.
+2. Individua la cartella pubblicata da GitHub Pages (impostazioni Pages: root del branch, oppure docs).
+3. NELLA CARTELLA PUBBLICATA, crea una sottocartella nuova chiamata esattamente: vino-distillati
+4. Carica NELLA SOTTOCARTELLA i cinque file di questo pacchetto, non lo ZIP.
+5. Non sostituire Il_Mio_Gin.html, né i manifest, né i service worker delle vecchie app.
+6. Se la pubblicazione usa la root del repository, il nuovo URL sarà:
+   https://cristian7167-collab.github.io/IlMioGinVino/vino-distillati/
+7. Apri con Chrome Android e vai su Backup > Installa Vino & Distillati; in alternativa
+   usa il menu Chrome: Installa app / Aggiungi a schermata Home.
+
+IMPORTANTE SULL'ARCHIVIO
+- Il database locale della nuova app è volutamente separato da quelli precedenti.
+- Le bottiglie precedenti NON si importano automaticamente, per evitare perdite o modifiche.
+- Da questa versione o dalla prova luminosa puoi usare Esporta backup JSON / Importa.
+- I backup delle app originali Vino & Gin potrebbero avere struttura diversa:
+  devono essere controllati e convertiti prima di importarli.
+- Salva backup periodici: cancellando i dati browser si possono perdere le bottiglie.
+- Senza pubblicazione HTTPS, GPS e installazione non sono affidabili.
+- OCR Tesseract locale richiede Internet per scaricare il motore e i dizionari al primo avvio.
+
+Questa consegna NON pubblica nulla su GitHub: è un pacchetto pronto al caricamento.
