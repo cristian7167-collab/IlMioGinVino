@@ -126,6 +126,6 @@ function wire(){document.querySelectorAll('.nav button').forEach(b=>b.addEventLi
 (async()=>{wire();await initDB();render();if(location.protocol==='https:'&&'serviceWorker'in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}if(state.store==='memoria temporanea')toast('Attenzione: il salvataggio permanente non è disponibile!')})();
 })();
 </script>
-<script src="./ocr-etichetta.js?v=20261010-6"></script>
+<script src="./ocr-etichetta.js?v=20261010-8"></script>
 </body>
 </html>

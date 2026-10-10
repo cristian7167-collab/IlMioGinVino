@@ -1,4 +1,4 @@
-const CACHE = 'il-mio-gin-vino-shell-20261010-ocr-v6';
+const CACHE = 'il-mio-gin-vino-shell-20261010-ocr-v8';
 const APP_FILES = [
   './', './index.html', './Il_Mio_Gin.html', './Il_Mio_Vino.html',
   './manifest.webmanifest', './icon-192.png', './icon-512.png',

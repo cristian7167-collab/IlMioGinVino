@@ -1,6 +1,6 @@
 /* Il Mio Gin e Il Mio Vino: OCR gratuito eseguito nel browser.
    Le foto rimangono sul dispositivo: scarichiamo solo il motore OCR e i dizionari.
-   Versione 2026-10-10 migliorata - patch OCR 6 / Nessuna API e nessun riconoscimento cloud. */
+   Versione 2026-10-10 migliorata - patch OCR 8 / catalogo locale / Nessuna API e nessun riconoscimento cloud. */
 (function (root) {
   'use strict';
   var type = document.body.dataset.collection === 'vino' ? 'vino' : 'gin';
@@ -85,6 +85,47 @@
     ['Napa Valley','Stati Uniti',['napa valley','napa']],
     ['Mendoza','Argentina',['mendoza']]
   ];
+  // Catalogo locale: fonte integrativa, NON sostituisce la fotografia.
+  // I campi proposti vanno confermati dall'utente prima del salvataggio.
+  // Non attribuire una provenienza se il marchio e' poco leggibile.
+  var localCatalog = [
+    {type:'gin',key:'mazzetti',name:'Gin Mazzetti',
+     producer:"Mazzetti d'Altavilla",region:'Piemonte',country:'Italia'},
+    {type:'gin',key:'citadelle',name:'Citadelle Gin',
+     producer:'Maison Ferrand',region:'Nuova Aquitania',country:'Francia'}
+  ];
+  function distanceUpToOne(a,b) {
+    // Distanza di Levenshtein al massimo 1; non usare frammenti brevi.
+    if(Math.abs(a.length-b.length)>1)return false;
+    if(a===b)return true;
+    var i=0,j=0,errors=0;
+    while(i<a.length && j<b.length) {
+      if(a[i]===b[j]){i++;j++;continue;}
+      if(++errors>1)return false;
+      if(a.length>b.length)i++;
+      else if(b.length>a.length)j++;
+      else {i++;j++;}
+    }
+    return errors+(i<a.length||j<b.length?1:0)<=1;
+  }
+  function catalogMatch(raw,kind) {
+    var words=fold(raw).split(' ').filter(Boolean);
+    var results=[];
+    localCatalog.forEach(function(item){
+      if(item.type!==kind)return;
+      var exact=words.indexOf(item.key)!==-1;
+      // Keep an edit-distance fallback only for long, nearly complete words.
+      var near=!exact && words.some(function(w){
+        return w.length>=6 && distanceUpToOne(w,item.key);
+      });
+      if(exact||near)results.push({item:item,confidence:exact?100:90});
+    });
+    if(!results.length)return null;
+    results.sort(function(a,b){return b.confidence-a.confidence;});
+    // Never use the catalog if two products are equally plausible.
+    if(results.length>1 && results[0].confidence===results[1].confidence)return null;
+    return results[0];
+  }
   var ignorable = /^(gin|gin (de|from|in) (france|italia|italy|spain|espana|england)|dry gin|london dry gin|distilled gin|vino|wine|red wine|white wine|rose|ros\u00e9|alc|vol|alcohol|prodotto|produced|imbottigliato|bottled|distilled|750\s?ml|70\s?cl|100\s?cl|doc|docg|igt|organic|bio|superiore|riserva|original|premium)$/i;
   var textBlacklist = /\b(alc\.?|%\s?vol|\d+\s?ml|\d+\s?cl|\d+\s?litri|ingredients|ingredienti|lotto|contiene|contains|barcode|consumo|servire|alc[o\u00f2]l|www\.|\.com|codice|imported by|distributed by|best before)\b/i;
   function tidy(s) {
@@ -148,6 +189,23 @@
     var chosen = (typeMatches.length ? typeMatches[0] : candidates[0]) || '';
     if (chosen && kind==='gin' && /^london dry gin\s+/i.test(chosen)) chosen=tidy(chosen.replace(/^london dry gin\s+/i,''));
     result.name = chosen;
+    // Apply curated metadata after the raw OCR parser; independent lines like
+    // 'GIN' and 'MAZZETTI' are valid evidence of the same brand.
+    var matched=catalogMatch(raw,kind);
+    if(matched) {
+      var item=matched.item;
+      // If the label explicitly indicates another country, do not assign
+      // the producer's origin automatically.
+      if(!result.country || result.country===item.country) {
+        result.name=item.name;
+        result.producer=item.producer;
+        result.region=item.region;
+        result.country=item.country;
+        result.catalog=item.key;
+        result.catalogConfidence=matched.confidence;
+        result.reasons.push('Marchio riconosciuto nel catalogo locale; verificare i dati');
+      }
+    }
     return result;
   }
   function status(s,bad) {
@@ -186,6 +244,7 @@
       if(notes.length) {el('ginNotes').value=notes.join('\n');assigned.push('note vino');}
     }
     var msg=assigned.length ? 'Compilati: '+assigned.join(', ')+'. Controlla i dati prima di salvare.' : 'Nessun campo compilato con sicurezza. Leggi il testo riconosciuto e completa a mano.';
+    if(data.catalog)msg+=' Marchio confermato dal catalogo locale (controlla la scheda).';
     status(msg);
   }
   function loadLibrary() {
@@ -301,6 +360,7 @@
     if(parsed.country)score+=10;
     if(parsed.vintage)score+=6;
     if(parsed.grape)score+=6;
+    if(parsed.catalog)score+=45;
     if(meaningful<7)score-=30;
     // Reject OCR detritus, even when the engine reports misleading confidence.
     if(parsed.name && /^(?:[A-Z]{2,4}\s*[#0-9]+|[A-Z]{1,3})$/i.test(parsed.name))score-=25;
@@ -309,6 +369,8 @@
   function usableResult(entry) {
     if(!entry)return false;
     var fields=entry.parsed;
+    // A full catalog brand match is stronger than generic OCR text noise.
+    if(fields.catalog && fields.catalogConfidence>=90)return true;
     return entry.score>=43 && Boolean(fields.name || fields.country || fields.region || fields.producer || fields.vintage);
   }
   async function process(photo,version) {
@@ -464,8 +526,22 @@
     if(crop)crop.addEventListener('click',function(e){e.preventDefault();openCrop();});
     var country=el('ginCountry');
     if(country)country.addEventListener('input',function(){if(!internalWrite)touchedCountry=true;});
+    // Also complete provenance if the user corrects the name by hand.
+    // Never replace the name they typed and never overwrite other manual data.
+    var name=el('ginName');
+    if(name)name.addEventListener('change',function(){
+      if(internalWrite || type!=='gin' || !name.value.trim())return;
+      var found=catalogMatch(name.value,'gin');
+      if(!found)return;
+      var record=found.item;
+      var completed=[];
+      if(setField('ginBrand',record.producer))completed.push('produttore');
+      if(setField('ginRegion',record.region))completed.push('regione');
+      if(setField('ginCountry',record.country,true))completed.push('nazione');
+      if(completed.length)status('Catalogo locale: completati '+completed.join(', ')+'. Controlla i dati prima di salvare.');
+    });
   }
-  root.GinVinoOCR={parse:parse,onPhotoReady:onPhotoReady,onEditorOpen:onEditorOpen,recognize:start,renderVariant:renderVariant,scoreOCR:scoreOCR};
+  root.GinVinoOCR={parse:parse,catalogMatch:catalogMatch,onPhotoReady:onPhotoReady,onEditorOpen:onEditorOpen,recognize:start,renderVariant:renderVariant,scoreOCR:scoreOCR};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);
   else setup();
 })(window);
