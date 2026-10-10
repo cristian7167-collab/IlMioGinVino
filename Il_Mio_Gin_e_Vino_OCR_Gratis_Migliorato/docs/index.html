@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#69431f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Gin e Vino">
+  <title>Il Mio Gin e Il Mio Vino</title>
+  <meta name="description" content="La tua collezione personale di gin e vino, con foto, posizione GPS, cronologia e backup.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  
+  <link rel="icon" type="image/png" href="./icon-192.png">
+  <style>
+    :root{color-scheme:light;--brown:#4e3325;--gold:#b48645;--muted:#736456}
+    *{box-sizing:border-box}html{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{margin:0;color:var(--brown);background:linear-gradient(165deg,#fbf7ef,#f2e7d7);min-height:100vh;min-height:100dvh}
+    .wrap{max-width:850px;margin:0 auto;padding:32px 17px 36px;padding-top:max(30px,env(safe-area-inset-top))}
+    header{text-align:center;margin:15px auto 26px}h1{font-family:Georgia,serif;font-size:clamp(30px,6vw,48px);line-height:1.12;margin:10px 0;color:#533823}header p{color:var(--muted);font-size:15px;line-height:1.6;margin:7px auto;max-width:490px}.kicker{font-size:11px;font-weight:750;letter-spacing:3px;text-transform:uppercase;color:#9d7b49}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.tile{background:rgba(255,255,255,.8);border:1px solid #dccaaa;border-radius:22px;display:flex;align-items:center;flex-direction:column;gap:9px;padding:22px 12px 20px;text-decoration:none;color:inherit;box-shadow:0 8px 22px #50391a12;min-height:290px;transition:transform .15s,box-shadow .15s}.tile:active{transform:scale(.98)}.tile:focus-visible{outline:3px solid var(--gold)}.tile img{width:min(100%,215px);aspect-ratio:1;object-fit:cover;border-radius:25%;box-shadow:0 2px 8px #54361622}.tile h2{margin:3px 0 0;font-family:Georgia,serif;font-size:24px}.tile p{text-align:center;color:var(--muted);font-size:13px;margin:0}.cta{margin-top:9px;border-radius:30px;background:var(--brown);color:#fff6e8;padding:12px 19px;font-weight:700;font-size:14px}
+    .note{margin:24px auto 0;max-width:680px;border:1px solid #dcc9aa;background:#fffaf2ab;border-radius:18px;padding:17px 19px;color:#55483c;font-size:13px;line-height:1.65}.note strong{color:#423023}.note h3{font-size:16px;margin:0 0 5px}.fineprint{max-width:680px;margin:13px auto 0;font-size:12px;color:var(--muted);line-height:1.6}footer{text-align:center;font-size:11px;opacity:.55;margin-top:24px}
+    @media (max-width:470px){.grid{gap:12px}.tile{padding:14px 8px;min-height:238px;border-radius:17px}.tile h2{font-size:21px}.tile p{font-size:12px}.cta{font-size:12px;padding:10px 12px}header{margin-bottom:22px}}
+  </style>
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=2">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div class="kicker">Bibirub · Le mie collezioni</div>
+    <h1>Il Mio Gin <span style="color:var(--gold)">&</span> Il Mio Vino</h1>
+    <p>Le tue bottiglie, i tuoi ricordi. Ora con lettura gratuita delle etichette dalle foto. Scegli quale collezione aprire.</p>
+  </header>
+  <section class="grid" aria-label="Seleziona la collezione">
+    <a class="tile" href="./Il_Mio_Gin.html">
+      <img src="./logo-gin.png" alt="Logo Il Mio Gin" width="215" height="215">
+      <h2>Il Mio Gin</h2>
+      <p>Gin, regioni e scoperte</p>
+      <span class="cta">Apri il Gin →</span>
+    </a>
+    <a class="tile" href="./Il_Mio_Vino.html">
+      <img src="./logo-vino.png" alt="Logo Il Mio Vino" width="215" height="215">
+      <h2>Il Mio Vino</h2>
+      <p>Vini, territori e cantina</p>
+      <span class="cta">Apri il Vino →</span>
+    </a>
+  </section>
+  <div class="note">
+    <h3>📱 Installa sulla schermata Home</h3>
+    <strong>iPhone:</strong> apri questo indirizzo in Safari, tocca Condividi (quadrato con freccia) e poi «Aggiungi alla schermata Home».<br>
+    <strong>Android:</strong> apri con Chrome e scegli «Installa app» oppure «Aggiungi a schermata Home» dal menu.
+  </div>
+  <p class="fineprint">🔒 Foto e schede sono memorizzate sul singolo dispositivo. Non si sincronizzano automaticamente tra iPhone e Android. Usa la funzione Backup/Importa delle due collezioni per trasferirle o proteggerle. Dopo il primo caricamento online, la parte principale dell'app può essere usata anche offline.</p>
+  <footer>Il Mio Gin e Il Mio Vino · Bibirub</footer>
+</main>
+<script>
+if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
+}
+</script>
+</body>
+</html>
