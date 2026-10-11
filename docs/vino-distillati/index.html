@@ -252,6 +252,27 @@ a{color:#703823}
 .photo-box .photo-picker-input{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;clip-path:inset(50%)!important;pointer-events:none!important;padding:0!important;border:0!important}
 .photo-capture-help{margin:10px 0 0!important}
 @media(max-width:420px){.photo-box{padding:10px!important;gap:9px}.photo-box .photo-choices label{font-size:12px;padding:10px 5px}.photo-row{gap:9px}}
+
+/* Versione 1.7.2 - due mappe distinte e scelta del luogo della bottiglia */
+.bibirub-map-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+.bibirub-map-actions .map-action{background:linear-gradient(145deg,#fffdf7,#fff3e2);border:1px solid #d7b995;border-radius:18px;color:#4d3529;padding:17px 14px;text-align:left;font-weight:850;font-size:17px;min-height:76px;box-shadow:0 5px 15px #5e39221a}
+.bibirub-map-actions small{display:block;font-size:12px;color:#766357;margin-top:5px;font-weight:550}
+.bibirub-map-actions .map-action:focus-visible{outline:3px solid #b87c46}
+.geo-position-box{border:1px solid #e3cfb7;border-radius:17px;background:#fffaf1;padding:16px;color:#4f3628}
+.geo-position-box label{font-weight:750;display:block;margin:14px 0 6px}
+.geo-query-row{display:flex;gap:8px}.geo-query-row input{flex:1;min-width:0}.geo-query-row button{white-space:nowrap}
+.map-edit-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.bibirub-map-overlay{position:fixed;inset:0;background:#1c1714b8;z-index:120;display:flex;align-items:center;justify-content:center;padding:12px}
+.bibirub-map-dialog{background:#fffaf3;border:1px solid #d5b994;border-radius:22px;max-height:calc(100dvh - 25px);overflow-y:auto;max-width:980px;width:100%;padding:17px;box-shadow:0 15px 65px #15100a55;color:#3b2c25}
+.bibirub-map-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.bibirub-map-top h2{font:700 30px Georgia,serif;color:#50301f;margin:6px 0}
+.bibirub-map-switch{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0}.bibirub-map-switch button.active{background:#69402d;color:white;border-color:#69402d}
+.map-status{min-height:23px;color:#655044;font-size:13px;margin:9px 0}
+.bibirub-map-canvas{height:min(57dvh,560px);min-height:275px;width:100%;border:1px solid #d6be9f;border-radius:16px;background:#ede5db;overflow:hidden;z-index:0}
+.bibirub-map-list{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow:auto;margin-top:10px}
+.bibirub-map-list button{background:white;border:1px solid #d7c2aa;border-radius:12px;padding:9px;color:#493121;text-align:left;font-size:12px}
+.map-provider{font-size:11px;color:#65594e}.map-provider a{color:#704329}
+.bibirub-map-dialog .leaflet-container{font:13px system-ui,sans-serif;color:#2e2e2e}
+@media(max-width:540px){.bibirub-map-actions{gap:8px}.bibirub-map-actions .map-action{padding:12px 9px;font-size:14px;min-height:80px}.geo-query-row{flex-wrap:wrap}.geo-query-row input{flex-basis:100%}.geo-query-row button{width:100%}.bibirub-map-dialog{padding:12px}.bibirub-map-top h2{font-size:24px}.bibirub-map-canvas{height:49dvh;min-height:280px}}
 </style>
 </head>
 <body>
@@ -306,6 +327,10 @@ a{color:#703823}
    <div class="geo-summary-heading"><h2 id="geoSummaryTitle">Le tue tipologie</h2><p id="geoSummaryIntro">Scegli una tipologia per esplorare le nazioni e le regioni.</p></div>
    <div id="geoSummaryTiles" class="geo-summary-tiles"></div>
   </section>
+  <div class="bibirub-map-actions" aria-label="Le tue mappe">
+   <button type="button" id="mapItineraryBtn" class="map-action">📍 I miei itinerari <small>Luoghi registrati con GPS</small></button>
+   <button type="button" id="mapCellarBtn" class="map-action">🗺️ La mia cantina <small>Origine: nazione, regione, città</small></button>
+  </div>
   <div class="toolbar"><input class="search" type="search" id="search" placeholder="Cerca per nome, marca, città, nazione, regione, note..." aria-label="Cerca nella raccolta"><select id="sort" class="sort" aria-label="Ordina"><option value="recent">Recenti</option><option value="name">Nome A–Z</option><option value="rating">Voto più alto</option><option value="year">Annata recente</option><option value="type">Tipologia</option></select></div><div class="geo-collection" id="geoListControls" role="group" aria-label="Filtri geografici">
    <label for="filterCountry">Nazione<select id="filterCountry"><option value="">Tutte le nazioni</option></select></label>
    <label for="filterRegion">Regione<select id="filterRegion"><option value="">Tutte le regioni</option></select></label>
@@ -360,20 +385,37 @@ a{color:#703823}
     <div class="field"><label for="bPrice">Prezzo acquistato (€)</label><input id="bPrice" type="number" min="0" step="0.01" placeholder="Es. 39.90"></div>
     <div class="field"><label for="bBought">Data acquisto</label><input id="bBought" type="date"></div>
     <div class="field full"><label for="bPlace">Dove l'hai trovata / acquistata</label><input id="bPlace" maxlength="160" placeholder="Enoteca, negozio, città, ristorante..."></div>
-    <label class="archived-edit"><input type="checkbox" id="bArchived"><span>Archiviato<small>Modificabile anche direttamente dalla Raccolta</small></span></label><div class="field full"><div class="split"><div><strong>📍 Geolocalizzazione</strong><p class="hint" id="geoStatus">Posizione non salvata.</p></div><button id="geoGet" class="secondary" type="button">Usa la mia posizione</button></div><p class="hint">La posizione è facoltativa: sarà salvata solo nella scheda e nel tuo backup, non inviata dall'app a un server.</p></div>
+    <label class="archived-edit"><input type="checkbox" id="bArchived"><span>Archiviato<small>Modificabile anche direttamente dalla Raccolta</small></span></label><div class="field full"><div class="geo-position-box">
+     <div class="split"><div><strong>📍 Posizione per «I miei itinerari»</strong><p class="hint" id="geoStatus">Posizione non salvata.</p></div><button id="geoGet" class="secondary" type="button">📍 Usa la mia posizione</button></div>
+     <label for="gpsQuery">Cerca sulla mappa oppure scrivi il luogo</label>
+     <div class="geo-query-row"><input id="gpsQuery" type="search" maxlength="190" placeholder="Es. Via Roma 15 Torino, oppure Firenze" autocomplete="street-address"><button id="gpsFindBtn" class="secondary" type="button">🔎 Cerca</button></div>
+     <div class="map-edit-actions"><button id="gpsMapBtn" class="secondary" type="button">🗺️ Scegli punto sulla mappa</button><button id="gpsClearBtn" class="ghost" type="button">Cancella posizione</button></div>
+     <p class="hint">La posizione GPS o scelta sulla mappa è distinta dalla provenienza Nazione / Regione / Città della bottiglia. Una ricerca invia solo il testo inserito al servizio cartografico OpenStreetMap, non le fotografie o l’archivio.</p>
+    </div></div>
     <div class="buttons"><button class="primary" type="submit" id="saveBtn">💾 Salva bottiglia</button><button class="ghost" type="button" id="cancelBtn">Annulla</button></div>
   </div></div></form>
 </section>
-<section id="backup" class="view" hidden><div class="eyebrow">I tuoi dati, sotto il tuo controllo</div><h1>Backup & ripristino</h1><p class="notice">Questa versione unificata mantiene un <strong>archivio indipendente</strong>. Non legge, cancella o sovrascrive automaticamente le bottiglie delle vecchie applicazioni. Per trasferire schede da questa versione o dalla prova usa il backup JSON.</p><div class="backup-grid"><div class="pane"><h3>⬇ Esporta archivio</h3><p>Scarica tutte le schede, comprese fotografie e coordinate GPS, in un file JSON.</p><button class="primary" id="exportBtn">Esporta backup JSON</button></div><div class="pane"><h3>⬆ Importa archivio</h3><p>Carica un backup creato da questa versione o dalla precedente prova. Le bottiglie con lo stesso ID vengono aggiornate; le altre vengono aggiunte.</p><label for="backupFile" class="secondary" style="display:inline-block;cursor:pointer">Scegli backup JSON</label><input id="backupFile" class="hidefile" type="file" accept=".json,application/json"></div></div><div class="pane" id="aiSettingsPane"><h3>✨ Riconoscimento con IA</h3><p class="hint">Configura una volta il tuo servizio privato. La chiave OpenAI si salva sul Cloudflare Worker, <strong>mai nel sito o qui</strong>. Il codice d’accesso serve a proteggere le richieste.</p>
+<section id="backup" class="view" hidden><div class="eyebrow">I tuoi dati, sotto il tuo controllo</div><h1>Backup & ripristino</h1><p class="notice">Questa versione unificata mantiene un <strong>archivio indipendente</strong>. Non legge, cancella o sovrascrive automaticamente le bottiglie delle vecchie applicazioni. Per trasferire schede da questa versione o dalla prova usa il backup JSON.</p><div class="backup-grid"><div class="pane"><h3>⬇ Esporta archivio</h3><p>Scarica tutte le schede, comprese fotografie e coordinate GPS, in un file JSON.</p><button class="primary" id="exportBtn">Esporta backup JSON</button></div><div class="pane"><h3>⬆ Importa archivio</h3><p>Carica un backup creato da questa versione o dalla precedente prova. Le bottiglie con lo stesso ID vengono aggiornate; le altre vengono aggiunte.</p><label for="backupFile" class="secondary" style="display:inline-block;cursor:pointer">Scegli backup JSON</label><input id="backupFile" class="hidefile" type="file" accept=".json,application/json"></div></div><div class="pane" id="aiSettingsPane"><h3>✨ Riconoscimento con IA</h3><p class="hint">Configura una volta il tuo servizio privato. Il servizio Cloudflare Workers AI puo essere usato senza chiave OpenAI nel sito. I codici di accesso restano protetti nel Worker. Il codice d’accesso serve a proteggere le richieste.</p>
   <div class="form-grid"><div class="field full"><label for="aiEndpoint">Indirizzo Cloudflare Worker (HTTPS)</label><input id="aiEndpoint" type="url" inputmode="url" autocomplete="off" placeholder="https://bibirub-ia.tuo-account.workers.dev"></div>
   <div class="field"><label for="aiCode">Codice d’accesso al servizio</label><input id="aiCode" type="password" autocomplete="off" placeholder="Codice configurato nel Worker"></div>
   <div class="field"><label>&nbsp;</label><button class="secondary" id="aiSaveConfig" type="button">Salva configurazione IA</button></div></div><p class="hint" id="aiConfigStatus" role="status">Servizio IA non configurato.</p>
   <p class="hint">Il codice rimane solo nella sessione del browser. Il servizio è necessario per analizzare foto; tutte le altre funzionalità continuano a funzionare senza IA.</p></div><div class="pane"><h3>📱 Installa su Android</h3><p class="hint">Dopo aver pubblicato questa app nella cartella <strong>vino-distillati</strong> su GitHub Pages (HTTPS), aprila con Chrome e premi il pulsante qui sotto. Le vecchie app rimarranno indipendenti.</p><button class="primary" id="installBtn" type="button">Installa Vino & Distillati</button><p id="installHelp" class="hint" role="status">Da un file HTML locale l'installazione come app e il GPS possono essere limitati. Usa l'indirizzo HTTPS pubblicato.</p></div><div class="pane"><h3>Come funziona il salvataggio?</h3><p class="hint">I dati vengono salvati in IndexedDB del browser, oppure in memoria locale se IndexedDB non è disponibile. L'archivio è distinto da quello delle app precedenti. Su Android, per geolocalizzazione e affidabilità del salvataggio è preferibile aprire il file da un indirizzo HTTPS. Se cancelli i dati del browser, perdi le schede non esportate.</p><p class="hint"><strong>IA:</strong> l’analisi delle etichette richiede un servizio Cloudflare Worker configurato con una chiave API mantenuta segreta. Le foto vengono elaborate da un fornitore IA esterno solo quando chiedi l’analisi. L’app non invia automaticamente GPS o archivio.</p></div></section>
-</main><footer class="footer">Bibirub · Vino & Distillati — versione unificata 1.7.1</footer>
+</main><footer class="footer">Bibirub · Vino & Distillati — versione unificata 1.7.2</footer>
 </div>
 <nav class="nav" aria-label="Navigazione"><button data-view="home" class="active"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/></svg></span>Home</button><button data-view="collection"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg></span>Raccolta</button><button data-view="editor"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg></span>Aggiungi</button><button data-view="backup"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16l-3-3M20 7l-3 3M20 17H4l3-3M4 17l3 3"/></svg></span>Backup</button></nav>
 <div id="toast" class="toast" role="status" hidden></div>
 <div id="detailOverlay" class="details-backdrop" hidden><div class="details" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><div class="split"><div class="eyebrow" id="detailType">Scheda</div><button class="ghost" id="detailClose">✕ Chiudi</button></div><h2 id="detailTitle"></h2><div id="detailContent"></div><div class="detail-actions"><button class="primary" id="detailEdit">✎ Modifica</button><button class="danger" id="detailDelete">Elimina</button></div></div></div>
+<div id="mapOverlay" class="bibirub-map-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="mapTitle">
+ <div class="bibirub-map-dialog">
+  <div class="bibirub-map-top"><div><div class="eyebrow">Bibirub · Vino & Distillati</div><h2 id="mapTitle">Le tue mappe</h2></div><button id="mapClose" type="button" class="ghost">✕ Chiudi</button></div>
+  <div id="mapSwitch" class="bibirub-map-switch" role="group" aria-label="Seleziona la mappa"><button type="button" id="mapTabItinerary" class="secondary">📍 I miei itinerari</button><button type="button" id="mapTabCellar" class="secondary">🗺️ La mia cantina</button></div>
+  <p class="hint" id="mapExplanation"></p>
+  <p class="map-status" id="mapStatus" role="status"></p>
+  <div id="bibirubMap" class="bibirub-map-canvas" aria-label="Mappa interattiva OpenStreetMap"></div>
+  <div id="mapBottleList" class="bibirub-map-list"></div>
+  <p class="map-provider">Dati e mappe: <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">© OpenStreetMap contributors</a>. Ricerca località: <a href="https://nominatim.openstreetmap.org/" rel="noopener noreferrer" target="_blank">Nominatim</a>. Richiede Internet.</p>
+ </div>
+</div>
 <div id="cropOverlay" class="crop-backdrop" hidden><div class="crop-window" role="dialog" aria-modal="true" aria-labelledby="cropTitle"><h3 id="cropTitle">Ritaglia l'etichetta</h3><p class="hint">Trascina sul rettangolo con le scritte. Il ritaglio serve solo all'OCR: la foto originale della scheda non cambia.</p><div id="cropStage" class="crop-stage"><img id="cropImage" alt="Immagine da ritagliare"><div class="crop-rect" id="cropRect"></div></div><div class="ocr-buttons"><button id="cropApply" class="primary">Analizza ritaglio con IA</button><button id="cropCancel" class="ghost">Annulla</button></div></div></div>
 <script src="./geo-europa.js"></script>
 <script>
@@ -641,7 +683,7 @@ function renderCollection(){const search=$('search').value.trim().toLocaleLowerC
  root.append(item);
 });}
 function clearEditor(){currentId=null;frontData='';backData='';originalFront=null;originalBack=null;gps=null;positionCrop=null;touched=new Set();autoFields=new Set();$('bottleForm').reset();$('bArchived').checked=false;$('fileFront').value='';$('fileBack').value='';$('fileFrontCamera').value='';$('fileBackCamera').value='';$('bType').value='';$('bQuantity').value='1';$('previewFront').hidden=true;$('previewBack').hidden=true;$('previewFront').removeAttribute('src');$('previewBack').removeAttribute('src');$('ocrText').textContent='Nessun testo ancora letto.';$('ocrSample').value='';$('geoStatus').textContent='Posizione non salvata.';$('typeHint').textContent='IA: in attesa di una foto.';$('editorTitle').textContent='Nuova bottiglia';$('geoCatalogStatus').textContent='Seleziona una città: regione e nazione saranno compilate automaticamente.';setOCR('Carica fronte e retro, poi premi «Analizza etichette con IA».');updateFieldHighlights();}
-function openEditor(type='',entry=null){if(busyOCR){toast('Attendi che termini l’OCR.');return;}clearEditor();if(entry){currentId=entry.id;$('editorTitle').textContent='Modifica bottiglia';readFields.forEach(k=>$(k).value=entry[k]??'');frontData=entry.frontData||'';backData=entry.backData||'';gps=entry.gps||null;$('bArchived').checked=Boolean(entry.archived);autoFields=new Set(entry.aiFilledFields||[]);if(frontData){$('previewFront').src=frontData;$('previewFront').hidden=false;}if(backData){$('previewBack').src=backData;$('previewBack').hidden=false;}prepareRegionOptions();if(gps)$('geoStatus').textContent=`${gps.lat.toFixed(5)}, ${gps.lon.toFixed(5)} · precisione ${Math.round(gps.accuracy||0)} m`;touched=new Set(readFields);}else if(type){$('bType').value=type;}prepareRegionOptions();$('geoCatalogStatus').textContent='Nazione → Regione → Città; se scegli una città riconosciuta, gli altri campi si compilano automaticamente.';$('typeHint').textContent=entry?'Categoria salvata; modificabile.':type?'Categoria scelta da te: l’OCR può proporre una correzione.':'Categoria da verificare tramite OCR.';updateTypeFields();updateFieldHighlights();$('detailOverlay').hidden=true;view='editor';document.querySelectorAll('.view').forEach(e=>e.hidden=e.id!=='editor');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view==='editor'));window.scrollTo({top:0,behavior:'instant'});}
+function openEditor(type='',entry=null){if(busyOCR){toast('Attendi che termini l’OCR.');return;}clearEditor();if(entry){currentId=entry.id;$('editorTitle').textContent='Modifica bottiglia';readFields.forEach(k=>$(k).value=entry[k]??'');frontData=entry.frontData||'';backData=entry.backData||'';gps=entry.gps||null;$('bArchived').checked=Boolean(entry.archived);autoFields=new Set(entry.aiFilledFields||[]);if(frontData){$('previewFront').src=frontData;$('previewFront').hidden=false;}if(backData){$('previewBack').src=backData;$('previewBack').hidden=false;}prepareRegionOptions();updateGpsDisplay();touched=new Set(readFields);}else if(type){$('bType').value=type;}prepareRegionOptions();$('geoCatalogStatus').textContent='Nazione → Regione → Città; se scegli una città riconosciuta, gli altri campi si compilano automaticamente.';$('typeHint').textContent=entry?'Categoria salvata; modificabile.':type?'Categoria scelta da te: l’OCR può proporre una correzione.':'Categoria da verificare tramite OCR.';updateTypeFields();updateFieldHighlights();$('detailOverlay').hidden=true;view='editor';document.querySelectorAll('.view').forEach(e=>e.hidden=e.id!=='editor');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view==='editor'));window.scrollTo({top:0,behavior:'instant'});}
 function updateTypeFields(){const type=$('bType').value;
  document.querySelectorAll('.vino-only').forEach(e=>e.hidden=type!=='Vino');
  document.querySelectorAll('.gin-only').forEach(e=>e.hidden=type!=='Gin');
@@ -760,7 +802,186 @@ async function runOCR(){
  }catch(err){setOCR((err.name==='AbortError'?'Tempo di attesa IA superato.':('Analisi IA non disponibile: '+err.message))+' Puoi compilare la scheda a mano.','warn');}
  finally{clearTimeout(timeout);busyOCR=false;$('ocrRun').disabled=false;}
 }
-async function getGPS(){if(!navigator.geolocation){toast('Geolocalizzazione non disponibile in questo browser.');return;}if(!window.isSecureContext){toast('Per la posizione serve HTTPS oppure un contesto sicuro.');return;}$('geoStatus').textContent='Richiedo la posizione al telefono...';navigator.geolocation.getCurrentPosition(pos=>{gps={lat:pos.coords.latitude,lon:pos.coords.longitude,accuracy:pos.coords.accuracy,at:new Date().toISOString()};$('geoStatus').textContent=`${gps.lat.toFixed(5)}, ${gps.lon.toFixed(5)} · precisione ${Math.round(gps.accuracy)} m`;toast('Posizione associata alla bottiglia.');},err=>{$('geoStatus').textContent='Posizione non disponibile.';toast(err.code===1?'Permesso posizione negato.':'Impossibile determinare la posizione.');},{enableHighAccuracy:true,timeout:16000,maximumAge:0});}
+
+// The user-controlled GPS point and the product's origin are intentionally independent.
+let bibMap=null, bibMapMarker=null, bibMapLayer=null, bibMapMode='', bibMapRequest=0, bibLastLookup=0;
+const GEO_CACHE_KEY='bibirub_origin_geocoding_v1';
+let originCoordsCache={};try{originCoordsCache=JSON.parse(localStorage.getItem(GEO_CACHE_KEY)||'{}')||{};}catch(_){originCoordsCache={};}
+function validGps(point){return point && Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lon)) && Math.abs(Number(point.lat))<=90 && Math.abs(Number(point.lon))<=180;}
+function updateGpsDisplay(){
+ const status=$('geoStatus'); if(!status)return;
+ status.textContent=validGps(gps)?`${Number(gps.lat).toFixed(5)}, ${Number(gps.lon).toFixed(5)}${gps.label?' · '+gps.label:''}${gps.source?' · '+(gps.source==='gps'?'GPS':gps.source==='map'?'Scelta su mappa':'Ricerca'):''}`:'Posizione non salvata.';
+}
+function updateSelectedGPS(lat,lon,label,source){
+ if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+ gps={lat,lon,label:label||'',source:source||'map',at:new Date().toISOString()};
+ updateGpsDisplay();toast('Posizione dell’itinerario selezionata. Salva la bottiglia per conservarla.');
+}
+function mapStatus(msg){if($('mapStatus'))$('mapStatus').textContent=msg;}
+function addStylesheet(url){return new Promise((resolve,reject)=>{const l=document.createElement('link');l.rel='stylesheet';l.href=url;l.onload=resolve;l.onerror=()=>reject(Error('Foglio mappa non disponibile'));document.head.append(l);});}
+function addScript(url){return new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src=url;sc.onload=resolve;sc.onerror=()=>reject(Error('Libreria mappa non disponibile'));document.head.append(sc);});}
+let bibLeafletLoader;
+async function getLeaflet(){
+ if(window.L)return window.L;
+ if(!bibLeafletLoader)bibLeafletLoader=Promise.all([
+  addStylesheet('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'),
+  addScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js')
+ ]).then(()=>{if(!window.L)throw Error('Leaflet non caricato');return window.L;}).catch(e=>{bibLeafletLoader=null;throw e;});
+ return bibLeafletLoader;
+}
+let lookupGate=Promise.resolve();
+function throttleLookup(){
+ const next=lookupGate.then(async()=>{
+  const elapsed=Date.now()-bibLastLookup;
+  if(elapsed<1250)await new Promise(r=>setTimeout(r,1250-elapsed));
+  bibLastLookup=Date.now();
+ });
+ lookupGate=next.catch(()=>{});
+ return next;
+}
+async function nominatim(query, signal){
+ await throttleLookup();
+ if(signal?.aborted)throw new DOMException('Ricerca annullata','AbortError');
+ const url='https://nominatim.openstreetmap.org/search?'+new URLSearchParams({q:query,format:'jsonv2',limit:'1',addressdetails:'1','accept-language':'it'});
+ const response=await fetch(url,{headers:{Accept:'application/json'},signal});
+ if(!response.ok)throw Error('Servizio ricerca non disponibile ('+response.status+'). Riprova più tardi.');
+ const entries=await response.json();
+ if(!Array.isArray(entries)||!entries.length)return null;
+ const hit=entries[0],lat=Number(hit.lat),lon=Number(hit.lon);
+ if(!Number.isFinite(lat)||!Number.isFinite(lon))return null;
+ return {lat,lon,label:String(hit.display_name||query),address:hit.address||{}};
+}
+function mapEntriesFromSelection(){
+ let subset=collectionMode==='summary'?pathSubset(searchSubset()):records.slice();
+ if(collectionMode!=='summary'){
+  const q=$('search').value.trim().toLocaleLowerCase('it');
+  const state=$('archiveFilter').value;
+  const c=$('filterCountry').value,r=$('filterRegion').value,city=$('filterCity').value;
+  subset=subset.filter(b=>(activeFilter==='Tutti'||(activeFilter==='Distillati'&&b.bType!=='Vino')||b.bType===activeFilter)
+   &&(state==='all'||(state==='archived'?!!b.archived:!b.archived))
+   &&(!c||geoNorm(b.bCountry)===geoNorm(c))&&(!r||geoNorm(b.bRegion)===geoNorm(r))&&(!city||geoNorm(b.bCity)===geoNorm(city))
+   &&(!q||['bType','bName','bBrand','bCountry','bRegion','bCity','bPlace','bNotes'].some(k=>String(b[k]||'').toLocaleLowerCase('it').includes(q))));
+ }
+ return subset;
+}
+function mapPopupText(group){
+ const wrapper=document.createElement('div');const strong=document.createElement('strong');strong.textContent=group.label;
+ const count=document.createElement('div');count.textContent=`${group.items.length} ${group.items.length===1?'scheda':'schede'}`;
+ wrapper.append(strong,count);
+ group.items.forEach(b=>{const line=document.createElement('div');line.textContent='• '+(b.bName||'Bottiglia')+' ('+(b.bType||'')+')';wrapper.append(line);});
+ return wrapper;
+}
+async function initMap(mode){
+ const L=await getLeaflet();
+ if(!$('mapOverlay').hidden && !bibMap){
+  bibMap=L.map('bibirubMap',{preferCanvas:true}).setView([44.5,11.5],5);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+   attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>',maxZoom:19
+  }).addTo(bibMap);
+  bibMapLayer=L.layerGroup().addTo(bibMap);
+  bibMap.on('click',event=>{
+   if(bibMapMode!=='pick')return;
+   const lat=event.latlng.lat,lon=event.latlng.lng;
+   if(bibMapMarker)bibMap.removeLayer(bibMapMarker);
+   bibMapMarker=L.marker([lat,lon]).addTo(bibMap);
+   updateSelectedGPS(lat,lon,$('gpsQuery').value.trim(),'map');
+   mapStatus('Punto scelto. Chiudi la mappa e salva la bottiglia.');
+  });
+ }
+ setTimeout(()=>bibMap?.invalidateSize(),120);
+ return L;
+}
+function mapPin(label,items,coord){
+ if(!bibMap||!bibMapLayer)return;
+ const marker=window.L.marker([coord.lat,coord.lon]).addTo(bibMapLayer);
+ const popup=mapPopupText({label,items});marker.bindPopup(popup);
+ const b=document.createElement('button');b.type='button';b.textContent=`📍 ${label} (${items.length})`;
+ b.onclick=()=>{bibMap.setView([coord.lat,coord.lon],Math.max(8,bibMap.getZoom()));marker.openPopup();};
+ $('mapBottleList').append(b);
+ return marker;
+}
+function mapFit(points){if(!points.length)return;
+ if(points.length===1)bibMap.setView(points[0],Math.max(9,Math.min(bibMap.getZoom(),13)));
+ else bibMap.fitBounds(window.L.latLngBounds(points),{padding:[35,35],maxZoom:12});
+}
+async function openBibirubMap(mode){
+ bibMapRequest++;const ticket=bibMapRequest;
+ bibMapMode=mode;$('mapOverlay').hidden=false;$('mapSwitch').hidden=mode==='pick';
+ $('mapTabItinerary').classList.toggle('active',mode==='itineraries');$('mapTabCellar').classList.toggle('active',mode==='cellar');
+ $('mapTitle').textContent=mode==='pick'?'Scegli una posizione':mode==='itineraries'?'I miei itinerari':'La mia cantina';
+ $('mapExplanation').textContent=mode==='pick'?'Tocca un punto della cartina per salvare la posizione GPS dell’itinerario.':mode==='itineraries'?'I segnaposto mostrano i luoghi che hai registrato con GPS, ricerca o scelta manuale.': 'I segnaposto derivano dalla città, regione e nazione di origine della bottiglia. Sono coordinate geografiche indicative, indipendenti dai luoghi visitati.';
+ $('mapBottleList').replaceChildren();mapStatus('Caricamento cartina…');
+ try{await initMap(mode);}catch(error){mapStatus('Mappa non caricata. Serve una connessione Internet: '+error.message);return;}
+ if(ticket!==bibMapRequest||$('mapOverlay').hidden)return;
+ bibMapLayer.clearLayers();if(bibMapMarker){bibMap.removeLayer(bibMapMarker);bibMapMarker=null;}
+ if(mode==='pick'){
+  if(validGps(gps)){
+   bibMap.setView([gps.lat,gps.lon],13);bibMapMarker=window.L.marker([gps.lat,gps.lon]).addTo(bibMap);
+   mapStatus('Punto salvato temporaneamente: tocca la mappa per spostarlo.');
+  }else{
+   bibMap.setView([43.7,12.5],5);mapStatus('Tocca la mappa per scegliere un punto.');
+  }
+  return;
+ }
+ const entries=mapEntriesFromSelection(),points=[];
+ if(mode==='itineraries'){
+  const groups=new Map();
+  for(const b of entries){if(!validGps(b.gps))continue;
+   const id=`${Number(b.gps.lat).toFixed(5)}:${Number(b.gps.lon).toFixed(5)}`;
+   if(!groups.has(id))groups.set(id,{items:[],coord:{lat:Number(b.gps.lat),lon:Number(b.gps.lon)},label:b.gps.label||b.bPlace||'Posizione registrata'});
+   groups.get(id).items.push(b);
+  }
+  for(const group of groups.values()){mapPin(group.label,group.items,group.coord);points.push([group.coord.lat,group.coord.lon]);}
+  mapStatus(`${entries.length} schede nella selezione · ${entries.filter(b=>validGps(b.gps)).length} geolocalizzate · ${entries.length-entries.filter(b=>validGps(b.gps)).length} senza posizione · ${groups.size} segnaposto`);
+  if(points.length)mapFit(points);else bibMap.setView([43.7,12.5],5);
+  return;
+ }
+ const groups=new Map();let missing=0;
+ for(const b of entries){
+  const country=String(b.bCountry||'').trim(),region=String(b.bRegion||'').trim(),city=String(b.bCity||'').trim();
+  if(!country&&!city){missing++;continue;}
+  const key=[city,region,country].join('|').toLocaleLowerCase('it');
+  if(!groups.has(key))groups.set(key,{items:[],country,region,city,label:[city,region,country].filter(Boolean).join(' · ')});
+  groups.get(key).items.push(b);
+ }
+ const unique=[...groups.values()];let ready=0,noResult=0;
+ mapStatus(`Ricerca coordinate delle località di origine: ${unique.length} località. Nessun dato GPS viene utilizzato.`);
+ for(let idx=0;idx<unique.length;idx++){
+  if(ticket!==bibMapRequest||$('mapOverlay').hidden)return;
+  const group=unique[idx],key=[group.city,group.region,group.country].join('|').toLowerCase();
+  let coord=originCoordsCache[key];
+  if(coord && (!validGps(coord)||!coord.lat))coord=null;
+  if(!coord){
+   try{coord=await nominatim([group.city,group.region,group.country].filter(Boolean).join(', '));
+    if(ticket!==bibMapRequest||$('mapOverlay').hidden)return;
+    if(coord){originCoordsCache[key]={lat:coord.lat,lon:coord.lon};
+     try{localStorage.setItem(GEO_CACHE_KEY,JSON.stringify(originCoordsCache));}catch(_){/* cache optional */}}
+   }catch(e){mapStatus('Ricerca temporaneamente indisponibile: '+e.message+' · Mostrati '+ready+' punti.');break;}
+  }
+  if(coord){mapPin(group.label,group.items,coord);points.push([coord.lat,coord.lon]);ready++;if(ready===1)mapFit(points);}
+  else noResult++;
+  mapStatus(`La mia cantina: ${ready}/${unique.length} località sulla mappa · ${missing} schede senza origine · ${noResult} località non trovate. ${idx<unique.length-1?'Ricerca in corso…':''}`);
+ }
+ if(ticket===bibMapRequest&&points.length)mapFit(points);
+}
+function closeBibirubMap(){bibMapRequest++;$('mapOverlay').hidden=true;bibMapMode='';}
+async function gpsSearch(){
+ const q=$('gpsQuery').value.trim();if(q.length<3){toast('Scrivi almeno tre caratteri del luogo o indirizzo.');return;}
+ $('geoStatus').textContent='Cerco il luogo su OpenStreetMap…';
+ try{const result=await nominatim(q);if(!result){$('geoStatus').textContent='Nessuna località trovata. Aggiungi città o nazione e riprova.';return;}
+  updateSelectedGPS(result.lat,result.lon,result.label,'search');await openBibirubMap('pick');
+ }catch(e){$('geoStatus').textContent='Ricerca non disponibile: '+e.message;}
+}
+
+async function getGPS(){
+ if(!navigator.geolocation){toast('GPS non disponibile nel browser.');return;}
+ if(!window.isSecureContext){toast('Per il GPS apri il sito HTTPS.');return;}
+ $('geoStatus').textContent='Richiedo la posizione al telefono…';
+ navigator.geolocation.getCurrentPosition(pos=>{
+  gps={lat:pos.coords.latitude,lon:pos.coords.longitude,accuracy:pos.coords.accuracy,source:'gps',at:new Date().toISOString()};
+  updateGpsDisplay();toast('Posizione GPS associata. Salva la bottiglia.');
+ },err=>{updateGpsDisplay();toast(err.code===1?'Autorizzazione GPS negata.':'Posizione non disponibile.');},{enableHighAccuracy:true,timeout:16000,maximumAge:0});
+}
 function getCropPos(evt){const stage=$('cropImage').getBoundingClientRect();return {x:Math.min(1,Math.max(0,(evt.clientX-stage.left)/stage.width)),y:Math.min(1,Math.max(0,(evt.clientY-stage.top)/stage.height))};}
 let drag=null;function paintCrop(){const sel=$('cropRect');const r=positionCrop||{x:.18,y:.14,w:.64,h:.72};const stage=$('cropImage').getBoundingClientRect(),outer=$('cropStage').getBoundingClientRect();sel.style.left=(stage.left-outer.left+r.x*stage.width)+'px';sel.style.top=(stage.top-outer.top+r.y*stage.height)+'px';sel.style.width=(r.w*stage.width)+'px';sel.style.height=(r.h*stage.height)+'px';}
 async function openCrop(){const p=originalFront||frontData;if(!p){toast('Carica prima la fotografia fronte.');return;}if(imgObject)URL.revokeObjectURL(imgObject);imgObject=typeof p==='string'?null:URL.createObjectURL(p);$('cropImage').src=imgObject||p;positionCrop=positionCrop||{x:.18,y:.14,w:.64,h:.72};$('cropOverlay').hidden=false;$('cropImage').onload=paintCrop;setTimeout(paintCrop,50);}
@@ -777,7 +998,18 @@ function bind(){ $('viewSummary').onclick=()=>setCollectionMode('summary');$('vi
  $('bCity').addEventListener('input',cityInputSuggestions);
  $('bCity').addEventListener('change',applyGeoFromCity);
  $('bCity').addEventListener('blur',applyGeoFromCity);
- $('bType').addEventListener('change',()=>{touched.add('bType');autoFields.delete('bType');updateTypeFields();});readFields.forEach(k=>{const el=$(k);const update=()=>{touched.add(k);autoFields.delete(k);updateFieldHighlights();};el.addEventListener('input',update);if(k!=='bType')el.addEventListener('change',update);});$('bottleForm').addEventListener('submit',saveEditor);['fileFrontCamera','fileFront'].forEach(id=>$(id).addEventListener('change',e=>{const file=e.target.files?.[0];if(file)handlePhoto('front',file);e.target.value='';}));['fileBackCamera','fileBack'].forEach(id=>$(id).addEventListener('change',e=>{const file=e.target.files?.[0];if(file)handlePhoto('back',file);e.target.value='';}));$('ocrRun').onclick=runOCR;$('aiSaveConfig').onclick=saveAISettings;updateAIStatus();$('ocrParseText').onclick=()=>{const s=$('ocrSample').value.trim();if(!s){toast('Incolla prima il testo.');return;}$('ocrText').textContent=s;const p=parseLabel(s);applyParsed(p,'simulazione da testo');};$('geoGet').onclick=getGPS;$('detailClose').onclick=()=>{$('detailOverlay').hidden=true;};$('detailOverlay').onclick=e=>{if(e.target===$('detailOverlay'))$('detailOverlay').hidden=true;};$('detailEdit').onclick=()=>{const b=records.find(x=>x.id===currentDetail);if(b)openEditor('',b);};$('detailDelete').onclick=async()=>{const b=records.find(x=>x.id===currentDetail);if(!b)return;if(!confirm(`Eliminare definitivamente “${b.bName}” dall’archivio?`))return;try{await removeItem(b.id);$('detailOverlay').hidden=true;await refresh();toast('Bottiglia eliminata.');}catch(e){toast('Non riesco a eliminare: '+e.message);}};$('exportBtn').onclick=exportBackup;$('backupFile').onchange=e=>importBackup(e.target.files[0]);$('cropOpen').onclick=openCrop;$('cropCancel').onclick=closeCrop;$('cropApply').onclick=()=>{closeCrop();runOCR();};$('cropStage').addEventListener('pointerdown',e=>{e.preventDefault();drag=getCropPos(e);$('cropStage').setPointerCapture(e.pointerId);positionCrop={x:drag.x,y:drag.y,w:.01,h:.01};paintCrop();});$('cropStage').addEventListener('pointermove',e=>{if(!drag)return;const point=getCropPos(e);positionCrop={x:Math.min(drag.x,point.x),y:Math.min(drag.y,point.y),w:Math.abs(point.x-drag.x),h:Math.abs(point.y-drag.y)};paintCrop();});const end=()=>{if(drag&&(positionCrop.w<.07||positionCrop.h<.07))positionCrop={x:.18,y:.14,w:.64,h:.72};drag=null;paintCrop();};$('cropStage').addEventListener('pointerup',end);$('cropStage').addEventListener('pointercancel',end);window.addEventListener('resize',()=>{if(!$('cropOverlay').hidden)paintCrop();});}
+ $('bType').addEventListener('change',()=>{touched.add('bType');autoFields.delete('bType');updateTypeFields();});readFields.forEach(k=>{const el=$(k);const update=()=>{touched.add(k);autoFields.delete(k);updateFieldHighlights();};el.addEventListener('input',update);if(k!=='bType')el.addEventListener('change',update);});$('bottleForm').addEventListener('submit',saveEditor);['fileFrontCamera','fileFront'].forEach(id=>$(id).addEventListener('change',e=>{const file=e.target.files?.[0];if(file)handlePhoto('front',file);e.target.value='';}));['fileBackCamera','fileBack'].forEach(id=>$(id).addEventListener('change',e=>{const file=e.target.files?.[0];if(file)handlePhoto('back',file);e.target.value='';}));$('ocrRun').onclick=runOCR;$('aiSaveConfig').onclick=saveAISettings;updateAIStatus();$('ocrParseText').onclick=()=>{const s=$('ocrSample').value.trim();if(!s){toast('Incolla prima il testo.');return;}$('ocrText').textContent=s;const p=parseLabel(s);applyParsed(p,'simulazione da testo');};$('gpsFindBtn').onclick=gpsSearch;
+ $('gpsQuery').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();gpsSearch();}});
+ $('gpsMapBtn').onclick=()=>openBibirubMap('pick');
+ $('gpsClearBtn').onclick=()=>{gps=null;$('gpsQuery').value='';updateGpsDisplay();toast('Posizione eliminata dalla scheda in modifica. Salva per confermare.');};
+ $('mapItineraryBtn').onclick=()=>openBibirubMap('itineraries');
+ $('mapCellarBtn').onclick=()=>openBibirubMap('cellar');
+ $('mapTabItinerary').onclick=()=>openBibirubMap('itineraries');
+ $('mapTabCellar').onclick=()=>openBibirubMap('cellar');
+ $('mapClose').onclick=closeBibirubMap;
+ $('mapOverlay').addEventListener('click',e=>{if(e.target===$('mapOverlay'))closeBibirubMap();});
+ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('mapOverlay').hidden)closeBibirubMap();});
+ $('geoGet').onclick=getGPS;$('detailClose').onclick=()=>{$('detailOverlay').hidden=true;};$('detailOverlay').onclick=e=>{if(e.target===$('detailOverlay'))$('detailOverlay').hidden=true;};$('detailEdit').onclick=()=>{const b=records.find(x=>x.id===currentDetail);if(b)openEditor('',b);};$('detailDelete').onclick=async()=>{const b=records.find(x=>x.id===currentDetail);if(!b)return;if(!confirm(`Eliminare definitivamente “${b.bName}” dall’archivio?`))return;try{await removeItem(b.id);$('detailOverlay').hidden=true;await refresh();toast('Bottiglia eliminata.');}catch(e){toast('Non riesco a eliminare: '+e.message);}};$('exportBtn').onclick=exportBackup;$('backupFile').onchange=e=>importBackup(e.target.files[0]);$('cropOpen').onclick=openCrop;$('cropCancel').onclick=closeCrop;$('cropApply').onclick=()=>{closeCrop();runOCR();};$('cropStage').addEventListener('pointerdown',e=>{e.preventDefault();drag=getCropPos(e);$('cropStage').setPointerCapture(e.pointerId);positionCrop={x:drag.x,y:drag.y,w:.01,h:.01};paintCrop();});$('cropStage').addEventListener('pointermove',e=>{if(!drag)return;const point=getCropPos(e);positionCrop={x:Math.min(drag.x,point.x),y:Math.min(drag.y,point.y),w:Math.abs(point.x-drag.x),h:Math.abs(point.y-drag.y)};paintCrop();});const end=()=>{if(drag&&(positionCrop.w<.07||positionCrop.h<.07))positionCrop={x:.18,y:.14,w:.64,h:.72};drag=null;paintCrop();};$('cropStage').addEventListener('pointerup',end);$('cropStage').addEventListener('pointercancel',end);window.addEventListener('resize',()=>{if(!$('cropOverlay').hidden)paintCrop();});}
 (async()=>{buildTypes();bind();startGeography().catch(e=>console.warn('Elenco città:',e));await initDb();await refresh();if(useLocal)toast('Archivio in modalità compatibilità: fai backup regolari.');})();
 })();
 </script>
